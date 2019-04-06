@@ -20,7 +20,7 @@ struct write_stream
 {
     using value_type = char;
 
-    char              v_;
+    char              v_ = 0x7F;
     std::vector<char> vs_;
 
     void write(char v)
