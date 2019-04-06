@@ -5,6 +5,7 @@
 
 #include <array>
 #include <experimental/ranges/algorithm>
+#include <experimental/ranges/range>
 
 #include "mocks/writestream.h"
 
@@ -62,7 +63,7 @@ SCENARIO("Transformations with ranges.")
         WHEN("[1, 2] is written asynchronously.")
         {
             s.write(array{1, 2}, [&](auto ec, auto n) {
-                THEN("[3, 4] is sent.")
+                THEN("[3, 4] is written.")
                 {
                     REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
                 }
@@ -72,6 +73,15 @@ SCENARIO("Transformations with ranges.")
                     REQUIRE(n == 2);
                 }
             });
+        }
+
+        WHEN("[0, 1, 2] is generated and written.")
+        {
+            s.write(ranges::view::iota(0, 3));
+            THEN("[1, 2, 3] is written.")
+            {
+                REQUIRE(ranges::equal(ws.vs_, array{1, 2, 3}));
+            }
         }
     }
 }
@@ -86,7 +96,13 @@ SCENARIO("Changing the type of the data.")
         WHEN("An array with two elements in written.")
         {
             s.write(array{1, 2});
-            THEN("Two is sent.") { REQUIRE(ws.v_ == 2); }
+            THEN("2 is written.") { REQUIRE(ws.v_ == 2); }
+        }
+
+        WHEN("[0, 1, 2] is generated and written.")
+        {
+            s.write(ranges::view::iota(0, 3));
+            THEN("3 is written.") { REQUIRE(ws.v_ == 3); }
         }
     }
 }

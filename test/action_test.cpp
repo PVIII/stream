@@ -5,6 +5,7 @@
 
 #include <array>
 #include <experimental/ranges/algorithm>
+#include <experimental/ranges/range>
 
 using namespace stream;
 using namespace std;
@@ -73,6 +74,19 @@ SCENARIO("Actions with ranges.")
                     REQUIRE(n == 2);
                 }
             });
+        }
+
+        WHEN("[0, 1, 2] is generated and written.")
+        {
+            s.write(ranges::view::iota(0, 3));
+            THEN("[0, 1, 2] is written.")
+            {
+                REQUIRE(ranges::equal(ws.vs_, array{0, 1, 2}));
+            }
+            THEN("The counter is incremented by exactly one.")
+            {
+                REQUIRE(counter == 1);
+            }
         }
     }
 }
