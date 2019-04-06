@@ -18,7 +18,7 @@ class Stream(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-        cmake.test()
+        self.run("ctest -VV")
 
     def package(self):
         self.copy("*.hpp")
