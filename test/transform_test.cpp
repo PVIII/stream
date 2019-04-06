@@ -28,7 +28,7 @@ SCENARIO("Transformations with single values.")
 
         WHEN("One is written asynchronously.")
         {
-            s.write(1, [ws](auto ec, auto n) {
+            s.write(1, [&](auto ec, auto n) {
                 THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
                 THEN("The number of written elements is 1.")
