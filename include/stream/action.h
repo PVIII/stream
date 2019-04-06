@@ -1,7 +1,7 @@
 #ifndef STREAM_ACTION_H_
 #define STREAM_ACTION_H_
 
-#include <tuple>
+#include "callback.h"
 
 namespace stream
 {
@@ -17,6 +17,12 @@ template<class Stream, class Pre> class action
     {
         pre_();
         stream_.write(v);
+    }
+
+    void write(auto const& v, completion_token&& c)
+    {
+        pre_();
+        stream_.write(v, c);
     }
 };
 } // namespace stream

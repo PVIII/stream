@@ -12,7 +12,7 @@
 #include <iostream>
 #include <vector>
 
-#include "delegate/Delegate.h"
+#include "stream/callback.h"
 
 namespace stream
 {
@@ -41,17 +41,16 @@ struct write_stream
         std::cout << ")" << std::endl;
     }
 
-    void write(char v, SA::delegate<void()> callback)
+    void write(char v, completion_token c)
     {
         write(v);
-        callback();
+        c(0, 1);
     }
 
-    void write(std::experimental::ranges::Range&& r,
-               SA::delegate<void()>               callback)
+    void write(std::experimental::ranges::Range&& r, completion_token c)
     {
         write(r);
-        callback();
+        c(0, r.size());
     }
 };
 

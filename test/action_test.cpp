@@ -10,7 +10,7 @@ using namespace stream;
 using namespace std;
 using namespace experimental;
 
-SCENARIO("A simple action before write.")
+SCENARIO("Actions with single values.")
 {
     GIVEN("A stream that increments a variable for each write.")
     {
@@ -25,10 +25,32 @@ SCENARIO("A simple action before write.")
             THEN("The counter is incremented.") { REQUIRE(counter == 1); }
         }
 
-        WHEN("A range is written.")
+        WHEN("A single value is written asynchronously.")
+        {
+            s.write(3, [&](auto ec, auto n) {
+                THEN("The value is written.") { REQUIRE(ws.v_ == 3); }
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("The number of written elements is 1.")
+                {
+                    REQUIRE(n == 1);
+                }
+            });
+        }
+    }
+}
+
+SCENARIO("Actions with ranges.")
+{
+    GIVEN("A stream that increments a variable for each write.")
+    {
+        write_stream ws;
+        char         counter = 0;
+        auto         s       = action(ws, [&]() { ++counter; });
+
+        WHEN("[2, 3] is written.")
         {
             s.write(array{2, 3});
-            THEN("The range is written.")
+            THEN("[2, 3] is written.")
             {
                 REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
             }
@@ -36,6 +58,21 @@ SCENARIO("A simple action before write.")
             {
                 REQUIRE(counter == 1);
             }
+        }
+
+        WHEN("[3, 4] is written asynchronously.")
+        {
+            s.write(array{3, 4}, [&](auto ec, auto n) {
+                THEN("[3, 4] is written.")
+                {
+                    REQUIRE(ranges::equal(ws.vs_, array{3, 4}));
+                }
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("The number of written elements is 1.")
+                {
+                    REQUIRE(n == 2);
+                }
+            });
         }
     }
 }

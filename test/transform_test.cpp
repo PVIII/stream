@@ -12,7 +12,7 @@ using namespace stream;
 using namespace std;
 using namespace experimental;
 
-SCENARIO("Writing single values.")
+SCENARIO("Transformations with single values.")
 {
     GIVEN("A write stream that adds one.")
     {
@@ -24,10 +24,22 @@ SCENARIO("Writing single values.")
             s.write(1);
             THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
         }
+
+        WHEN("One is written asynchronously.")
+        {
+            s.write(1, [ws](auto ec, auto n) {
+                THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("The number of written elements is 1.")
+                {
+                    REQUIRE(n == 1);
+                }
+            });
+        }
     }
 }
 
-SCENARIO("Writing a range.")
+SCENARIO("Transformations with ranges.")
 {
     GIVEN("A write stream that adds 1 to a range.")
     {
@@ -45,6 +57,21 @@ SCENARIO("Writing a range.")
             {
                 REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
             }
+        }
+
+        WHEN("[1, 2] is written asynchronously.")
+        {
+            s.write(array{1, 2}, [&](auto ec, auto n) {
+                THEN("[3, 4] is sent.")
+                {
+                    REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
+                }
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("The number of written elements is 2.")
+                {
+                    REQUIRE(n == 2);
+                }
+            });
         }
     }
 }

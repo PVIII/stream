@@ -2,7 +2,7 @@ from conans import ConanFile, CMake, tools
 
 class Stream(ConanFile):
     name = "stream"
-    version = "0.0.1"
+    version = "0.0.2"
     url = "https://github.com/PVIII/stream.git"
     license = "MIT"
     author = "Patrick WANG-FRENINGER <github@freninger.at>"
