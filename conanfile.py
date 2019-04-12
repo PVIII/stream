@@ -10,7 +10,7 @@ class Stream(ConanFile):
     settings = "os", "compiler", "arch", "build_type"
     generators = "cmake"
     requires = "cmcstl2/bee0705@pviii/stable", "delegate/1.0.0@pviii/stable"
-    build_requires = "prebuilt-catch2/2.7.1@patrick/local"
+    build_requires = "prebuilt-catch2/2.7.1@pviii/stable"
     exports_sources = "**"
     no_copy_source = True
 
