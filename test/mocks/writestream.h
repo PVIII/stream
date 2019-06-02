@@ -9,7 +9,6 @@
 #define TEST_MOCKS_WRITESTREAM_H_
 
 #include <experimental/ranges/concepts>
-#include <iostream>
 #include <vector>
 
 #include "stream/callback.h"
@@ -20,34 +19,24 @@ struct write_stream
 {
     using value_type = char;
 
-    char              v_ = 0x7F;
-    std::vector<char> vs_;
+    value_type              v_ = 0x7F;
+    std::vector<value_type> vs_;
 
-    void write(char v)
-    {
-        v_ = v;
-        std::cout << v << std::endl;
-    }
+    void write(value_type v) { v_ = v; }
 
-    void write(std::experimental::ranges::Range&& r)
+    void write(std::experimental::ranges::Range const& r)
     {
         vs_.clear();
-        std::cout << "( ";
-        for(auto v : r)
-        {
-            std::cout << v << " ";
-            vs_.push_back(v);
-        }
-        std::cout << ")" << std::endl;
+        for(auto v : r) { vs_.push_back(v); }
     }
 
-    void write(char v, completion_token c)
+    void write(value_type v, completion_token c)
     {
         write(v);
         c(0, 1);
     }
 
-    void write(std::experimental::ranges::Range&& r, completion_token c)
+    void write(std::experimental::ranges::Range const& r, completion_token c)
     {
         write(r);
         c(0, r.size());
@@ -56,4 +45,4 @@ struct write_stream
 
 } /* namespace stream */
 
-#endif /* TEST_MOCKS_WRITESTREAM_H_ */
+#endif // TEST_MOCKS_WRITESTREAM_H_

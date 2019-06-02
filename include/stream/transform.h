@@ -2,8 +2,7 @@
 #define STREAM_TRANSFORM_H_
 
 #include "callback.h"
-
-#include "delegate/Delegate.h"
+#include "output_view/transform.h"
 
 namespace stream
 {
@@ -20,6 +19,14 @@ template<class Stream, class F> class transform
     void write(auto const& v, completion_token&& c)
     {
         stream_.write(func_(v), c);
+    }
+
+    auto read() const { return func_(stream_.read()); }
+
+    auto read(auto& r) const
+    {
+        auto tr = output_view::transform(r, func_);
+        return stream_.read(tr);
     }
 };
 } // namespace stream
