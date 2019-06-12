@@ -58,16 +58,11 @@ SCENARIO("Transformations with ranges.")
     GIVEN("A write stream that adds 1 to a range.")
     {
         write_stream ws;
-        auto         s = stream::transform(ws, [](auto const& r) {
-            vector<char> result;
-            ranges::transform(r, ranges::back_inserter(result),
-                              [](auto v) { return v + 1; });
-            return result;
-        });
+        auto         s = stream::transform(ws, [](auto v) { return v + 1; });
         WHEN("[1, 2] is written.")
         {
             s.write(array{1, 2});
-            THEN("[3, 4] is sent.")
+            THEN("[2, 3] is sent.")
             {
                 REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
             }
@@ -76,7 +71,7 @@ SCENARIO("Transformations with ranges.")
         WHEN("[1, 2] is written asynchronously.")
         {
             s.write(array{1, 2}, [&](auto ec, auto n) {
-                THEN("[3, 4] is written.")
+                THEN("[2, 3] is written.")
                 {
                     REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
                 }
@@ -88,12 +83,12 @@ SCENARIO("Transformations with ranges.")
             });
         }
 
-        WHEN("[0, 1, 2] is generated and written.")
+        WHEN("[1, 2, 3] is generated and written.")
         {
-            s.write(ranges::view::iota(0, 3));
-            THEN("[1, 2, 3] is written.")
+            s.write(ranges::view::iota(1, 4));
+            THEN("[2, 3, 4] is written.")
             {
-                REQUIRE(ranges::equal(ws.vs_, array{1, 2, 3}));
+                REQUIRE(ranges::equal(ws.vs_, array{2, 3, 4}));
             }
         }
     }
@@ -111,27 +106,6 @@ SCENARIO("Transformations with ranges.")
                 s.read(a);
                 REQUIRE_THAT(a, Equals(array{2, 3}));
             }
-        }
-    }
-}
-
-SCENARIO("Changing the type of the data.")
-{
-    GIVEN("A write stream that writes the size of the container.")
-    {
-        write_stream ws;
-        auto         s = stream::transform(ws, [](auto r) { return r.size(); });
-
-        WHEN("An array with two elements in written.")
-        {
-            s.write(array{1, 2});
-            THEN("2 is written.") { REQUIRE(ws.v_ == 2); }
-        }
-
-        WHEN("[0, 1, 2] is generated and written.")
-        {
-            s.write(ranges::view::iota(0, 3));
-            THEN("3 is written.") { REQUIRE(ws.v_ == 3); }
         }
     }
 }

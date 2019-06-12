@@ -3,6 +3,7 @@
 
 #include "callback.h"
 #include "output_view/transform.h"
+#include <experimental/ranges/range>
 
 namespace stream
 {
@@ -16,9 +17,19 @@ template<class Stream, class F> class transform
 
     void write(auto const& v) { stream_.write(func_(v)); }
 
+    void write(std::experimental::ranges::Range const& r)
+    {
+        stream_.write(view::transform(r, func_));
+    }
+
     void write(auto const& v, completion_token&& c)
     {
         stream_.write(func_(v), c);
+    }
+
+    void write(std::experimental::ranges::Range const& r, completion_token&& c)
+    {
+        stream_.write(view::transform(r, func_), c);
     }
 
     auto read() const { return func_(stream_.read()); }
