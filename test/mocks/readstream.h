@@ -15,6 +15,8 @@
 
 namespace stream
 {
+namespace ranges = std::experimental::ranges;
+
 struct read_stream
 {
     using value_type = char;
@@ -24,7 +26,7 @@ struct read_stream
 
     value_type read() { return v_; }
 
-    void read(auto& r) { std::experimental::ranges::copy(vs_, std::begin(r)); }
+    void read(auto& r) { ranges::copy(vs_, std::begin(r)); }
 };
 
 } /* namespace stream */

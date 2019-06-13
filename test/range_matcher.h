@@ -13,18 +13,16 @@
 
 #include <catch2/catch.hpp>
 
-template<std::experimental::ranges::Range R>
-class RangeMatcher : public Catch::MatcherBase<R>
+namespace ranges = std::experimental::ranges;
+
+template<ranges::Range R> class RangeMatcher : public Catch::MatcherBase<R>
 {
     R range_;
 
   public:
     RangeMatcher(R&& r) : range_(r) {}
 
-    bool match(R const& r) const override
-    {
-        return std::experimental::ranges::equal(range_, r);
-    }
+    bool match(R const& r) const override { return ranges::equal(range_, r); }
 
     std::string describe() const override
     {
@@ -36,8 +34,7 @@ class RangeMatcher : public Catch::MatcherBase<R>
     }
 };
 
-template<std::experimental::ranges::Range R>
-inline RangeMatcher<R> Equals(R&& r)
+template<ranges::Range R> inline RangeMatcher<R> Equals(R&& r)
 {
     return RangeMatcher<R>(std::forward<R>(r));
 }

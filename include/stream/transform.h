@@ -7,6 +7,8 @@
 
 namespace stream
 {
+namespace ranges = std::experimental::ranges;
+
 template<class Stream, class F> class transform
 {
     Stream& stream_;
@@ -17,7 +19,7 @@ template<class Stream, class F> class transform
 
     void write(auto const& v) { stream_.write(func_(v)); }
 
-    void write(std::experimental::ranges::Range const& r)
+    void write(ranges::Range const& r)
     {
         stream_.write(view::transform(r, func_));
     }
@@ -27,7 +29,7 @@ template<class Stream, class F> class transform
         stream_.write(func_(v), c);
     }
 
-    void write(std::experimental::ranges::Range const& r, completion_token&& c)
+    void write(ranges::Range const& r, completion_token&& c)
     {
         stream_.write(view::transform(r, func_), c);
     }

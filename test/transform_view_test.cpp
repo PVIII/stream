@@ -8,7 +8,7 @@
 
 #include "output_view/transform.h"
 
-using namespace std::experimental;
+namespace ranges = std::experimental::ranges;
 using std::array;
 using stream::output_view::transform;
 

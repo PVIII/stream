@@ -16,6 +16,8 @@
 
 namespace stream
 {
+namespace ranges = std::experimental::ranges;
+
 struct write_stream
 {
     using value_type = char;
@@ -25,11 +27,10 @@ struct write_stream
 
     void write(value_type v) { v_ = v; }
 
-    void write(std::experimental::ranges::Range const& r)
+    void write(ranges::Range const& r)
     {
         vs_.clear();
-        std::experimental::ranges::copy(
-            r, std::experimental::ranges::back_inserter(vs_));
+        ranges::copy(r, ranges::back_inserter(vs_));
     }
 
     void write(value_type v, completion_token c)
@@ -38,7 +39,7 @@ struct write_stream
         c(0, 1);
     }
 
-    void write(std::experimental::ranges::Range const& r, completion_token c)
+    void write(ranges::Range const& r, completion_token c)
     {
         write(r);
         c(0, r.size());

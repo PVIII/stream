@@ -12,7 +12,7 @@
 
 using namespace stream;
 using namespace std;
-using namespace experimental;
+namespace ranges = std::experimental::ranges;
 
 SCENARIO("Transformations with single values.")
 {
