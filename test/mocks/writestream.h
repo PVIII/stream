@@ -9,7 +9,7 @@
 #define TEST_MOCKS_WRITESTREAM_H_
 
 #include <experimental/ranges/algorithm>
-#include <experimental/ranges/concepts>
+#include <experimental/ranges/range>
 #include <vector>
 
 #include "stream/callback.h"
@@ -39,7 +39,7 @@ struct write_stream
         c(0, 1);
     }
 
-    void write(ranges::Range const& r, completion_token c)
+    void write(ranges::SizedRange const& r, completion_token c)
     {
         write(r);
         c(0, r.size());
