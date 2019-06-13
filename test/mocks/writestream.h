@@ -8,6 +8,7 @@
 #ifndef TEST_MOCKS_WRITESTREAM_H_
 #define TEST_MOCKS_WRITESTREAM_H_
 
+#include <experimental/ranges/algorithm>
 #include <experimental/ranges/concepts>
 #include <vector>
 
@@ -27,7 +28,8 @@ struct write_stream
     void write(std::experimental::ranges::Range const& r)
     {
         vs_.clear();
-        for(auto v : r) { vs_.push_back(v); }
+        std::experimental::ranges::copy(
+            r, std::experimental::ranges::back_inserter(vs_));
     }
 
     void write(value_type v, completion_token c)
