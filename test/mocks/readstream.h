@@ -13,10 +13,10 @@
 
 #include "stream/callback.h"
 
-namespace stream
-{
 namespace ranges = std::experimental::ranges;
 
+namespace stream
+{
 struct read_stream
 {
     using value_type = char;

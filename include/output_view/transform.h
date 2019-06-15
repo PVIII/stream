@@ -15,7 +15,7 @@
 #include <stl2/view/all.hpp>
 #include <stl2/view/view_interface.hpp>
 
-namespace stream
+namespace output_view
 {
 using namespace std::experimental::ranges;
 
@@ -340,8 +340,6 @@ requires View<V>&& OutputRange<V, iter_reference_t<iterator_t<V>>>&&
     }
 };
 
-namespace output_view
-{
 struct __transform_fn
 {
     template<Range Rng, CopyConstructible F>
@@ -361,6 +359,5 @@ struct __transform_fn
 
 inline constexpr __transform_fn transform{};
 } // namespace output_view
-} // namespace stream
 
 #endif // STREAM_OUTPUT_VIEW_TRANSFORM_H

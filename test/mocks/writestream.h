@@ -14,10 +14,10 @@
 
 #include "stream/callback.h"
 
-namespace stream
-{
 namespace ranges = std::experimental::ranges;
 
+namespace stream
+{
 struct write_stream
 {
     using value_type = char;

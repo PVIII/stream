@@ -1,4 +1,4 @@
-#include "stream/transform.h"
+#include "output_view/transform.h"
 
 #include <catch2/catch.hpp>
 
@@ -6,11 +6,9 @@
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/iterator>
 
-#include "output_view/transform.h"
-
 namespace ranges = std::experimental::ranges;
+using output_view::transform;
 using std::array;
-using stream::output_view::transform;
 
 SCENARIO("Assignments.")
 {
