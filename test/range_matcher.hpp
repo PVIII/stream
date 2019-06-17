@@ -5,16 +5,18 @@
  *      Author: patrick
  */
 
-#ifndef TEST_RANGE_MATCHER_H
-#define TEST_RANGE_MATCHER_H
+#ifndef TEST_RANGE_MATCHER_HPP_
+#define TEST_RANGE_MATCHER_HPP_
+
+#include <catch2/catch.hpp>
 
 #include <experimental/ranges/range>
 #include <sstream>
 
-#include <catch2/catch.hpp>
-
 namespace ranges = std::experimental::ranges;
 
+namespace stream
+{
 template<ranges::Range R> class RangeMatcher : public Catch::MatcherBase<R>
 {
     R range_;
@@ -39,4 +41,6 @@ template<ranges::Range R> inline RangeMatcher<R> Equals(R&& r)
     return RangeMatcher<R>(std::forward<R>(r));
 }
 
-#endif // TEST_RANGE_MATCHER_H
+} // namespace stream
+
+#endif // TEST_RANGE_MATCHER_HPP_

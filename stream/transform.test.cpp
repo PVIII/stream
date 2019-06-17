@@ -1,14 +1,14 @@
-#include "stream/transform.h"
+#include "transform.hpp"
+
+#include <test/mocks/readstream.hpp>
+#include <test/mocks/writestream.hpp>
+#include <test/range_matcher.hpp>
 
 #include <catch2/catch.hpp>
 
 #include <array>
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
-
-#include "mocks/readstream.h"
-#include "mocks/writestream.h"
-#include "range_matcher.h"
 
 using namespace stream;
 using namespace std;

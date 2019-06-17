@@ -5,14 +5,14 @@
  *      Author: pait
  */
 
-#ifndef TEST_MOCKS_WRITESTREAM_H_
-#define TEST_MOCKS_WRITESTREAM_H_
+#ifndef TEST_MOCKS_WRITESTREAM_HPP_
+#define TEST_MOCKS_WRITESTREAM_HPP_
+
+#include <stream/callback.hpp>
 
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
 #include <vector>
-
-#include "stream/callback.h"
 
 namespace ranges = std::experimental::ranges;
 
@@ -46,6 +46,6 @@ struct write_stream
     }
 };
 
-} /* namespace stream */
+} // namespace stream
 
-#endif // TEST_MOCKS_WRITESTREAM_H_
+#endif // TEST_MOCKS_WRITESTREAM_HPP_

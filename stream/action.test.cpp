@@ -1,5 +1,6 @@
-#include "mocks/writestream.h"
-#include "stream/action.h"
+#include "action.hpp"
+
+#include <test/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
 

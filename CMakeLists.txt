@@ -12,9 +12,10 @@ enable_testing()
 
 add_library(stream INTERFACE)
 target_sources(stream INTERFACE
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/stream/action.h
-            ${CMAKE_CURRENT_SOURCE_DIR}/include/stream/transform.h)
-target_include_directories(stream INTERFACE include/)
+            ${CMAKE_CURRENT_SOURCE_DIR}/stream/action.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/stream/callback.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/stream/transform.hpp)
+target_include_directories(stream INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(stream INTERFACE cxx_std_17)
 target_compile_options(stream INTERFACE
     $<$<CXX_COMPILER_ID:GNU>:-fconcepts>

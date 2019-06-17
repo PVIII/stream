@@ -2,7 +2,6 @@
 #define STREAM_OUTPUT_VIEW_TRANSFORM_H
 
 #include <functional>
-
 #include <stl2/detail/algorithm/find_if.hpp>
 #include <stl2/detail/functional/invoke.hpp>
 #include <stl2/detail/fwd.hpp>
@@ -15,10 +14,10 @@
 #include <stl2/view/all.hpp>
 #include <stl2/view/view_interface.hpp>
 
-namespace output_view
-{
 using namespace std::experimental::ranges;
 
+namespace output_view
+{
 template<Range V, CopyConstructible F>
 requires OutputRange<V, iter_reference_t<iterator_t<V>>>&& View<V>&&
     std::is_object_v<F>&& RegularInvocable<

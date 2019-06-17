@@ -1,8 +1,9 @@
-#ifndef STREAM_TRANSFORM_H_
-#define STREAM_TRANSFORM_H_
+#ifndef STREAM_TRANSFORM_HPP_
+#define STREAM_TRANSFORM_HPP_
 
-#include "callback.h"
-#include "output_view/transform.h"
+#include <output_view/transform.hpp>
+#include <stream/callback.hpp>
+
 #include <experimental/ranges/range>
 
 namespace ranges = std::experimental::ranges;
@@ -21,7 +22,7 @@ template<class Stream, class F> class transform
 
     void write(ranges::Range const& r)
     {
-        stream_.write(ranges::view::transform(r, func_));
+        stream_.write(view::transform(r, func_));
     }
 
     void write(auto const& v, completion_token&& c)
@@ -31,7 +32,7 @@ template<class Stream, class F> class transform
 
     void write(ranges::Range const& r, completion_token&& c)
     {
-        stream_.write(ranges::view::transform(r, func_), c);
+        stream_.write(view::transform(r, func_), c);
     }
 
     auto read() const { return func_(stream_.read()); }
@@ -44,4 +45,4 @@ template<class Stream, class F> class transform
 };
 } // namespace stream
 
-#endif // STREAM_TRANSFORM_H_
+#endif // STREAM_TRANSFORM_HPP_
