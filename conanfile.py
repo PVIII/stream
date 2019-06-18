@@ -21,7 +21,7 @@ class Stream(ConanFile):
         cmake.test(output_on_failure=True)
 
     def package(self):
-        self.copy("*.hpp")
+        self.copy("*.hpp", excludes="test/*")
         self.copy("CMakeLists.txt")
         self.copy("LICENSE.txt")
         self.copy("README.md")
