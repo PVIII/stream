@@ -36,14 +36,15 @@ SCENARIO("Transformations with single values.")
 
         WHEN("One is written asynchronously.")
         {
-            s.write(1, [&](auto ec, auto n) {
-                THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
+            s.write(1, [](auto ec, auto n) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
                 THEN("The number of written elements is 1.")
                 {
                     REQUIRE(n == 1);
                 }
             });
+            ws.callback();
+            THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
         }
     }
 
@@ -77,17 +78,18 @@ SCENARIO("Transformations with ranges.")
 
         WHEN("[1, 2] is written asynchronously.")
         {
-            s.write(array{1, 2}, [&](auto ec, auto n) {
-                THEN("[2, 3] is written.")
-                {
-                    REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
-                }
+            s.write(array{1, 2}, [](auto ec, auto n) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
                 THEN("The number of written elements is 2.")
                 {
                     REQUIRE(n == 2);
                 }
             });
+            ws.callback();
+            THEN("[2, 3] is written.")
+            {
+                REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
+            }
         }
 
         WHEN("[1, 2, 3] is generated and written.")
