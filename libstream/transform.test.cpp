@@ -5,12 +5,13 @@
  * @link      github.com/PVIII/stream
  */
 
-#include "transform.hpp"
+#include <libstream/transform.hpp>
 
 #include <catch2/catch.hpp>
+
+#include <tests/helpers/range_matcher.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
-#include <tests/range_matcher.hpp>
 
 #include <array>
 #include <experimental/ranges/algorithm>

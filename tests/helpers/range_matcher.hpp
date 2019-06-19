@@ -10,6 +10,7 @@
 
 #include <catch2/catch.hpp>
 
+#include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
 #include <sstream>
 
