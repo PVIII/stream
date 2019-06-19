@@ -1,10 +1,3 @@
-/*
- * range_matcher.h
- *
- *  Created on: May 16, 2019
- *      Author: patrick
- */
-
 #ifndef TESTS_RANGE_MATCHER_HPP_
 #define TESTS_RANGE_MATCHER_HPP_
 

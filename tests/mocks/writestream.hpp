@@ -1,10 +1,3 @@
-/*
- * writestream.h
- *
- *  Created on: 10 Sep 2018
- *      Author: pait
- */
-
 #ifndef TESTS_MOCKS_WRITESTREAM_HPP_
 #define TESTS_MOCKS_WRITESTREAM_HPP_
 

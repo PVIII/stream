@@ -1,10 +1,3 @@
-/*
- * readstream.h
- *
- *  Created on: Apr 12, 2019
- *      Author: patrick
- */
-
 #ifndef TEST_MOCKS_READSTREAM_H_
 #define TEST_MOCKS_READSTREAM_H_
 
