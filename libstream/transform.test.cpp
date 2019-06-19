@@ -18,7 +18,7 @@ SCENARIO("Transformations with single values.")
     GIVEN("A write stream that adds one.")
     {
         write_stream ws;
-        auto         s = stream::transform(ws, [](char v) { return v + 1; });
+        auto         s = stream::transform(ws, [](auto v) { return v + 1; });
 
         WHEN("One is written.")
         {
@@ -42,7 +42,7 @@ SCENARIO("Transformations with single values.")
     GIVEN("A read stream that adds one.")
     {
         read_stream rs;
-        auto        s = stream::transform(rs, [](char v) { return v + 1; });
+        auto        s = stream::transform(rs, [](auto v) { return v + 1; });
 
         WHEN("The read stream reads 1.")
         {
