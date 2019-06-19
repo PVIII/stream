@@ -1,3 +1,10 @@
+/*!
+ * @author    Patrick Wang-Freninger <github@freninger.at>
+ * @copyright MIT
+ * @date      2019
+ * @link      github.com/PVIII/stream
+ */
+
 #include <liboutput_view/transform.hpp>
 
 #include <catch2/catch.hpp>

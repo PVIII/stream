@@ -1,3 +1,10 @@
+/*!
+ * @author    Patrick Wang-Freninger <github@freninger.at>
+ * @copyright MIT
+ * @date      2019
+ * @link      github.com/PVIII/stream
+ */
+
 #ifndef STREAM_OUTPUT_VIEW_TRANSFORM_H
 #define STREAM_OUTPUT_VIEW_TRANSFORM_H
 

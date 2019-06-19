@@ -1,3 +1,10 @@
+/*!
+ * @author    Patrick Wang-Freninger <github@freninger.at>
+ * @copyright MIT
+ * @date      2019
+ * @link      github.com/PVIII/stream
+ */
+
 #ifndef TEST_MOCKS_READSTREAM_H_
 #define TEST_MOCKS_READSTREAM_H_
 

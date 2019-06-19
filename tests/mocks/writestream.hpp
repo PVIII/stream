@@ -1,3 +1,10 @@
+/*!
+ * @author    Patrick Wang-Freninger <github@freninger.at>
+ * @copyright MIT
+ * @date      2019
+ * @link      github.com/PVIII/stream
+ */
+
 #ifndef TESTS_MOCKS_WRITESTREAM_HPP_
 #define TESTS_MOCKS_WRITESTREAM_HPP_
 
