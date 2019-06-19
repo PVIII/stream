@@ -1,7 +1,7 @@
 from conans import ConanFile, CMake, tools
 
-class Stream(ConanFile):
-    name = "stream"
+class LibStream(ConanFile):
+    name = "libstream"
     version = "0.0.2"
     url = "https://github.com/PVIII/stream.git"
     license = "MIT"

@@ -1,6 +1,6 @@
 #include "action.hpp"
 
-#include <test/mocks/writestream.hpp>
+#include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
 

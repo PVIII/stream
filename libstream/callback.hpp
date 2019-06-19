@@ -1,5 +1,5 @@
-#ifndef STREAM_CALLBACK_HPP_
-#define STREAM_CALLBACK_HPP_
+#ifndef LIBSTREAM_CALLBACK_HPP_
+#define LIBSTREAM_CALLBACK_HPP_
 
 #include <delegate/Delegate.h>
 
@@ -12,4 +12,4 @@ using error_code = int;
 using completion_token = SA::delegate<void(error_code, std::size_t n)>;
 } // namespace stream
 
-#endif // STREAM_CALLBACK_HPP_
+#endif // LIBSTREAM_CALLBACK_HPP_

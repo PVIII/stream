@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 
 add_executable(action_test
-               ../stream/action.test.cpp)
+               ../libstream/action.test.cpp)
 target_link_libraries(action_test PRIVATE stream CONAN_PKG::prebuilt-catch2)
 target_compile_options(action_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
 target_compile_options(action_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
@@ -10,7 +10,7 @@ target_link_options(action_test PRIVATE -fsanitize=address -fsanitize=leak -fsan
 add_test(NAME action_test COMMAND action_test)
 
 add_executable(transform_test
-               ../stream/transform.test.cpp)
+               ../libstream/transform.test.cpp)
 target_link_libraries(transform_test PRIVATE stream CONAN_PKG::prebuilt-catch2)
 target_compile_options(transform_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
 target_compile_options(transform_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
@@ -19,7 +19,7 @@ target_link_options(transform_test PRIVATE -fsanitize=address -fsanitize=leak -f
 add_test(NAME transform_test COMMAND transform_test)
 
 add_executable(view_test
-               ../output_view/transform.test.cpp)
+               ../liboutput_view/transform.test.cpp)
 target_link_libraries(view_test PRIVATE stream CONAN_PKG::prebuilt-catch2)
 target_compile_options(view_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
 target_compile_options(view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)

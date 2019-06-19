@@ -5,10 +5,10 @@
  *      Author: pait
  */
 
-#ifndef TEST_MOCKS_WRITESTREAM_HPP_
-#define TEST_MOCKS_WRITESTREAM_HPP_
+#ifndef TESTS_MOCKS_WRITESTREAM_HPP_
+#define TESTS_MOCKS_WRITESTREAM_HPP_
 
-#include <stream/callback.hpp>
+#include <libstream/callback.hpp>
 
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
@@ -48,4 +48,4 @@ struct write_stream
 
 } // namespace stream
 
-#endif // TEST_MOCKS_WRITESTREAM_HPP_
+#endif // TESTS_MOCKS_WRITESTREAM_HPP_

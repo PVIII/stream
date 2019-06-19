@@ -5,8 +5,8 @@
  *      Author: patrick
  */
 
-#ifndef TEST_RANGE_MATCHER_HPP_
-#define TEST_RANGE_MATCHER_HPP_
+#ifndef TESTS_RANGE_MATCHER_HPP_
+#define TESTS_RANGE_MATCHER_HPP_
 
 #include <catch2/catch.hpp>
 
@@ -43,4 +43,4 @@ template<ranges::Range R> inline RangeMatcher<R> Equals(R&& r)
 
 } // namespace stream
 
-#endif // TEST_RANGE_MATCHER_HPP_
+#endif // TESTS_RANGE_MATCHER_HPP_

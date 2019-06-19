@@ -1,7 +1,7 @@
-#ifndef STREAM_ACTION_HPP_
-#define STREAM_ACTION_HPP_
+#ifndef LIBSTREAM_ACTION_HPP_
+#define LIBSTREAM_ACTION_HPP_
 
-#include "callback.hpp"
+#include <libstream/callback.hpp>
 
 namespace stream
 {
@@ -27,4 +27,4 @@ template<class Stream, class Pre> class action
 };
 } // namespace stream
 
-#endif // STREAM_ACTION_HPP_
+#endif // LIBSTREAM_ACTION_HPP_

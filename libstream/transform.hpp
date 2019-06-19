@@ -1,8 +1,8 @@
-#ifndef STREAM_TRANSFORM_HPP_
-#define STREAM_TRANSFORM_HPP_
+#ifndef LIBSTREAM_TRANSFORM_HPP_
+#define LIBSTREAM_TRANSFORM_HPP_
 
-#include <output_view/transform.hpp>
-#include <stream/callback.hpp>
+#include <liboutput_view/transform.hpp>
+#include <libstream/callback.hpp>
 
 #include <experimental/ranges/range>
 
@@ -22,7 +22,7 @@ template<class Stream, class F> class transform
 
     void write(ranges::Range const& r)
     {
-        stream_.write(view::transform(r, func_));
+        stream_.write(ranges::view::transform(r, func_));
     }
 
     void write(auto const& v, completion_token&& c)
@@ -32,7 +32,7 @@ template<class Stream, class F> class transform
 
     void write(ranges::Range const& r, completion_token&& c)
     {
-        stream_.write(view::transform(r, func_), c);
+        stream_.write(ranges::view::transform(r, func_), c);
     }
 
     auto read() const { return func_(stream_.read()); }
@@ -45,4 +45,4 @@ template<class Stream, class F> class transform
 };
 } // namespace stream
 
-#endif // STREAM_TRANSFORM_HPP_
+#endif // LIBSTREAM_TRANSFORM_HPP_

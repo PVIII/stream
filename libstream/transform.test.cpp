@@ -1,10 +1,9 @@
 #include "transform.hpp"
 
-#include <test/mocks/readstream.hpp>
-#include <test/mocks/writestream.hpp>
-#include <test/range_matcher.hpp>
-
 #include <catch2/catch.hpp>
+#include <tests/mocks/readstream.hpp>
+#include <tests/mocks/writestream.hpp>
+#include <tests/range_matcher.hpp>
 
 #include <array>
 #include <experimental/ranges/algorithm>

@@ -8,7 +8,7 @@
 #ifndef TEST_MOCKS_READSTREAM_H_
 #define TEST_MOCKS_READSTREAM_H_
 
-#include <stream/callback.hpp>
+#include <libstream/callback.hpp>
 
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/concepts>
