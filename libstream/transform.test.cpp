@@ -58,6 +58,17 @@ SCENARIO("Transformations with single values.")
             rs.v_ = 1;
             THEN("The transformed stream reads 2.") { REQUIRE(s.read() == 2); }
         }
+
+        WHEN("One is read asynchronously.")
+        {
+            rs.v_         = 1;
+            auto callback = [](auto ec, auto v) {
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("The returned value is 2.") { REQUIRE(v == 2); }
+            };
+            s.read(callback);
+            rs.callback();
+        }
     }
 }
 

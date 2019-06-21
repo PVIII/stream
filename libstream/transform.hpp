@@ -19,8 +19,17 @@ namespace stream
 {
 template<class Stream, class F> class transform
 {
+    using value_type = typename Stream::value_type;
+
     Stream& stream_;
     F       func_;
+
+    read_token<value_type> read_callback_;
+
+    void read_handler(error_code ec, value_type v)
+    {
+        read_callback_(ec, func_(v));
+    }
 
   public:
     transform(Stream& stream, F&& f) : stream_(stream), func_(f) {}
@@ -44,10 +53,19 @@ template<class Stream, class F> class transform
 
     auto read() const { return func_(stream_.read()); }
 
-    auto read(auto& r) const
+    auto read(ranges::Range& r)
     {
         auto tr = output_view::transform(r, func_);
         return stream_.read(tr);
+    }
+
+    void read(read_token<value_type>&& t)
+    {
+        read_callback_ = t;
+
+        using this_t = transform<Stream, F>;
+        stream_.read(read_token<value_type>::template create<
+                     this_t, &this_t::read_handler>(this));
     }
 };
 } // namespace stream
