@@ -53,7 +53,7 @@ template<class Stream, class F> class transform
 
     auto read() const { return func_(stream_.read()); }
 
-    auto read(ranges::Range& r)
+    void read(ranges::Range& r)
     {
         auto tr = output_view::transform(r, func_);
         return stream_.read(tr);
