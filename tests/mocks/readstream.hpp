@@ -38,7 +38,7 @@ struct read_stream
 
     void read(read_token<value_type> t) { read_callback_ = t; }
 
-    void read(auto& r, completion_token&& t)
+    void read(ranges::Range& r, completion_token&& t)
     {
         range_callback_ = t;
         ranges::copy(vs_, std::begin(r));
