@@ -68,10 +68,10 @@ template<class Stream, class F> class transform
                      this_t, &this_t::read_handler>(this));
     }
 
-    void read(ranges::Range& r, completion_token const& t)
+    void read(ranges::Range& r, completion_token&& t)
     {
         auto tr = output_view::transform(r, func_);
-        stream_.read(tr, t);
+        stream_.read(tr, std::forward<completion_token>(t));
     }
 };
 } // namespace stream

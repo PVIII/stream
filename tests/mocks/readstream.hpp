@@ -25,21 +25,24 @@ struct read_stream
     value_type              v_ = 0x7F;
     std::vector<value_type> vs_;
 
-    read_token<value_type> callback_;
+    read_token<value_type> read_callback_;
+    completion_token       range_callback_;
 
     value_type read() { return v_; }
 
     void read(auto& r) { ranges::copy(vs_, std::begin(r)); }
 
-    void read(read_token<value_type> t) { callback_ = t; }
+    void read(read_token<value_type> t) { read_callback_ = t; }
 
-    void read(auto& r, completion_token const& t)
+    void read(auto& r, completion_token&& t)
     {
+        range_callback_ = t;
         ranges::copy(vs_, std::begin(r));
-        t(0, vs_.size());
     }
 
-    void callback() const { callback_(0, v_); }
+    void read_callback() const { read_callback_(0, v_); }
+
+    void range_callback() const { range_callback_(0, vs_.size()); }
 };
 
 } // namespace stream

@@ -67,7 +67,7 @@ SCENARIO("Transformations with single values.")
                 THEN("The returned value is 2.") { REQUIRE(v == 2); }
             };
             s.read(callback);
-            rs.callback();
+            rs.read_callback();
         }
     }
 }
@@ -141,6 +141,7 @@ SCENARIO("Transformations with ranges.")
                 }
             };
             s.read(a, callback);
+            rs.range_callback();
         }
     }
 }
