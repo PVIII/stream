@@ -33,6 +33,12 @@ struct read_stream
 
     void read(read_token<value_type> t) { callback_ = t; }
 
+    void read(auto& r, completion_token const& t)
+    {
+        ranges::copy(vs_, std::begin(r));
+        t(0, vs_.size());
+    }
+
     void callback() const { callback_(0, v_); }
 };
 

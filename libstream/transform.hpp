@@ -67,6 +67,12 @@ template<class Stream, class F> class transform
         stream_.read(read_token<value_type>::template create<
                      this_t, &this_t::read_handler>(this));
     }
+
+    void read(ranges::Range& r, completion_token const& t)
+    {
+        auto tr = output_view::transform(r, func_);
+        stream_.read(tr, t);
+    }
 };
 } // namespace stream
 

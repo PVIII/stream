@@ -127,5 +127,20 @@ SCENARIO("Transformations with ranges.")
                 REQUIRE_THAT(a, Equals(array{2, 3}));
             }
         }
+
+        WHEN("The stream reads [1, 2] asynchronously.")
+        {
+            rs.vs_ = {1, 2};
+            std::array<int, 2> a;
+            auto               callback = [&](auto ec, auto n) {
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("2 values have been read.") { REQUIRE(n == 2); }
+                THEN("The transformed stream reads [2, 3].")
+                {
+                    REQUIRE_THAT(a, Equals(array{2, 3}));
+                }
+            };
+            s.read(a, callback);
+        }
     }
 }
