@@ -30,7 +30,11 @@ struct read_stream
 
     value_type read() { return v_; }
 
-    void read(auto& r) { ranges::copy(vs_, std::begin(r)); }
+    std::size_t read(auto& r)
+    {
+        ranges::copy(vs_, std::begin(r));
+        return vs_.size();
+    }
 
     void read(read_token<value_type> t) { read_callback_ = t; }
 

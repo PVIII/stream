@@ -121,9 +121,10 @@ SCENARIO("Transformations with ranges.")
         {
             rs.vs_ = {1, 2};
             std::array<int, 2> a;
+            auto               n = s.read(a);
+            THEN("Two elements have been read.") { REQUIRE(n == 2); }
             THEN("The transformed stream reads [2, 3].")
             {
-                s.read(a);
                 REQUIRE_THAT(a, Equals(array{2, 3}));
             }
         }
