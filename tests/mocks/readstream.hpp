@@ -26,7 +26,13 @@ struct read_stream
     std::vector<value_type> vs_;
 
     read_token<value_type> read_callback_;
-    completion_token       range_callback_;
+
+    completion_token range_callback_;
+    template<ranges::Range R> struct range_read_context
+    {
+        R range_;
+    };
+    void* context_;
 
     value_type read() { return v_; }
 
@@ -38,10 +44,22 @@ struct read_stream
 
     void read(read_token<value_type> t) { read_callback_ = t; }
 
-    void read(ranges::Range& r, completion_token&& t)
+    template<ranges::Range R> range_read_context<R>* get_context()
+    {
+        return static_cast<range_read_context<R>*>(context_);
+    }
+
+    template<ranges::Range R>
+    void read(R& r, completion_token&& t, range_read_context<R>* context)
     {
         range_callback_ = t;
-        ranges::copy(vs_, std::begin(r));
+        context->range_ = r;
+        context_        = context;
+    }
+
+    template<ranges::Range R> void do_read()
+    {
+        ranges::copy(vs_, std::begin(get_context<R>()->range_));
     }
 
     void read_callback() const { read_callback_(0, v_); }

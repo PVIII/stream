@@ -141,7 +141,9 @@ SCENARIO("Transformations with ranges.")
                     REQUIRE_THAT(a, Equals(array{2, 3}));
                 }
             };
-            s.read(a, callback);
+            auto context = s.make_read_context(a);
+            s.read(a, callback, &context);
+            rs.do_read<decltype(context)::inner_type>();
             rs.range_callback();
         }
     }
