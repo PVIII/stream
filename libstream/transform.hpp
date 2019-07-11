@@ -25,6 +25,8 @@ template<class Stream, class F> class transform
     {
         C child_context_;
 
+        range_read_context(C&& c) : child_context_(c) {}
+
         void submit() { child_context_.submit(); }
     };
 
@@ -78,9 +80,7 @@ template<class Stream, class F> class transform
 
     auto read(ranges::Range&& r, completion_token&& t)
     {
-        return range_read_context<decltype(
-            stream_.read(output_view::transform(r, func_),
-                         std::forward<completion_token>(t)))>{
+        return range_read_context{
             stream_.read(output_view::transform(r, func_),
                          std::forward<completion_token>(t))};
     }
