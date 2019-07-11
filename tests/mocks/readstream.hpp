@@ -30,9 +30,18 @@ struct read_stream
     completion_token range_callback_;
     template<ranges::Range R> struct range_read_context
     {
-        R range_;
+        R            range_;
+        read_stream& stream_;
+        bool         submitted_ = false;
+
+        void submit()
+        {
+            assert(!submitted_);
+
+            submitted_ = true;
+            ranges::copy(stream_.vs_, std::begin(range_));
+        }
     };
-    void* context_;
 
     value_type read() { return v_; }
 
@@ -44,22 +53,10 @@ struct read_stream
 
     void read(read_token<value_type> t) { read_callback_ = t; }
 
-    template<ranges::Range R> range_read_context<R>* get_context()
-    {
-        return static_cast<range_read_context<R>*>(context_);
-    }
-
-    template<ranges::Range R>
-    void read(R& r, completion_token&& t, range_read_context<R>* context)
+    template<ranges::Range R> auto read(R&& r, completion_token&& t)
     {
         range_callback_ = t;
-        context->range_ = r;
-        context_        = context;
-    }
-
-    template<ranges::Range R> void do_read()
-    {
-        ranges::copy(vs_, std::begin(get_context<R>()->range_));
+        return range_read_context<R>{r, *this};
     }
 
     void read_callback() const { read_callback_(0, v_); }

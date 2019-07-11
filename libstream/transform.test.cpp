@@ -141,9 +141,12 @@ SCENARIO("Transformations with ranges.")
                     REQUIRE_THAT(a, Equals(array{2, 3}));
                 }
             };
-            auto context = s.make_read_context(a);
-            s.read(a, callback, &context);
-            rs.do_read<decltype(context)::inner_type>();
+            auto context = s.read(a, callback);
+            THEN("Nothing has happened before submit.")
+            {
+                REQUIRE_THAT(a, Equals(array{0, 0}));
+            }
+            context.submit();
             rs.range_callback();
         }
     }

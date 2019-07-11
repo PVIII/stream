@@ -21,11 +21,11 @@ template<class Stream, class F> class transform
 {
   public:
     using value_type = typename Stream::value_type;
-    template<ranges::Range R> struct range_read_context
+    template<class C> struct range_read_context
     {
-        using inner_type = decltype(
-            output_view::transform(std::declval<R&>(), std::declval<F>()));
-        typename Stream::template range_read_context<inner_type> child_;
+        C child_context_;
+
+        void submit() { child_context_.submit(); }
     };
 
   private:
@@ -76,16 +76,13 @@ template<class Stream, class F> class transform
                      this_t, &this_t::read_handler>(this));
     }
 
-    template<ranges::Range R> auto make_read_context([[maybe_unused]] R& r)
+    auto read(ranges::Range&& r, completion_token&& t)
     {
-        return range_read_context<R>();
-    }
-
-    template<ranges::Range R>
-    void read(R& r, completion_token&& t, range_read_context<R>* c)
-    {
-        auto tr = output_view::transform(r, func_);
-        stream_.read(tr, std::forward<completion_token>(t), &c->child_);
+        return range_read_context<decltype(
+            stream_.read(output_view::transform(r, func_),
+                         std::forward<completion_token>(t)))>{
+            stream_.read(output_view::transform(r, func_),
+                         std::forward<completion_token>(t))};
     }
 };
 } // namespace stream
