@@ -132,7 +132,7 @@ SCENARIO("Transformations with ranges.")
         WHEN("The stream reads [1, 2] asynchronously.")
         {
             rs.vs_ = {1, 2};
-            std::array<int, 2> a;
+            std::array<int, 2> a{0, 0};
             auto               callback = [&](auto ec, auto n) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
                 THEN("2 values have been read.") { REQUIRE(n == 2); }
