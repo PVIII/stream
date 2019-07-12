@@ -61,13 +61,13 @@ SCENARIO("Transformations with single values.")
 
         WHEN("One is read asynchronously.")
         {
-            rs.v_         = 1;
             auto callback = [](auto ec, auto v) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
                 THEN("The returned value is 2.") { REQUIRE(v == 2); }
             };
-            s.read(callback);
-            rs.read_callback();
+            auto sender = s.read<char>();
+            sender.submit(callback);
+            rs.read_callback(1);
         }
     }
 }

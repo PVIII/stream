@@ -20,7 +20,6 @@ namespace stream
 template<class Stream, class F> class transform
 {
   public:
-    using value_type = typename Stream::value_type;
     template<class C> struct range_read_context
     {
         C child_context_;
@@ -29,16 +28,36 @@ template<class Stream, class F> class transform
 
         void submit() { child_context_.submit(); }
     };
+    template<class T, class C> struct read_context
+    {
+        C                     child_context_;
+        read_token<T>         token_;
+        transform<Stream, F>& stream_;
+
+        read_context(C&& c, transform<Stream, F>& s)
+            : child_context_(c), stream_(s)
+        {
+        }
+
+        void handler(error_code ec, T v) { token_(ec, stream_.func_(v)); }
+
+        void submit(read_token<T>&& t)
+        {
+            token_       = t;
+            using this_t = read_context<T, C>;
+            child_context_.submit(
+                read_token<T>::template create<this_t, &this_t::handler>(this));
+        }
+    };
 
   private:
     Stream& stream_;
     F       func_;
 
-    read_token<value_type> read_callback_;
-
-    void read_handler(error_code ec, value_type v)
+    template<class T, class C>
+    auto make_read_context(C&& c, transform<Stream, F>& s)
     {
-        read_callback_(ec, func_(v));
+        return read_context<T, C>{std::forward<C>(c), s};
     }
 
   public:
@@ -69,13 +88,9 @@ template<class Stream, class F> class transform
         return stream_.read(tr);
     }
 
-    void read(read_token<value_type>&& t)
+    template<class T> auto read()
     {
-        read_callback_ = t;
-
-        using this_t = transform<Stream, F>;
-        stream_.read(read_token<value_type>::template create<
-                     this_t, &this_t::read_handler>(this));
+        return make_read_context<T >(stream_.read_single(), *this);
     }
 
     auto read(ranges::Range&& r, completion_token&& t)

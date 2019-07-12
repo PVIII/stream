@@ -20,12 +20,8 @@ namespace stream
 {
 struct read_stream
 {
-    using value_type = char;
-
-    value_type              v_ = 0x7F;
-    std::vector<value_type> vs_;
-
-    read_token<value_type> read_callback_;
+    char              v_ = 0x7F;
+    std::vector<char> vs_;
 
     completion_token range_callback_;
     template<ranges::Range R> struct range_read_context
@@ -43,7 +39,24 @@ struct read_stream
         }
     };
 
-    value_type read() { return v_; }
+    struct context
+    {
+        read_stream&     stream_;
+        read_token<char> token_;
+
+        context(read_stream& s) : stream_(s) {}
+
+        void submit(read_token<char>&& t)
+        {
+            token_                = t;
+            stream_.read_context_ = this;
+        }
+
+        void callback(char v) const { token_(0, v); }
+    };
+    context* read_context_ = nullptr;
+
+    char read() { return v_; }
 
     std::size_t read(auto& r)
     {
@@ -51,7 +64,7 @@ struct read_stream
         return vs_.size();
     }
 
-    void read(read_token<value_type> t) { read_callback_ = t; }
+    auto read_single() { return context{*this}; }
 
     template<ranges::Range R> auto read(R&& r, completion_token&& t)
     {
@@ -59,9 +72,9 @@ struct read_stream
         return range_read_context<R>{r, *this};
     }
 
-    void read_callback() const { read_callback_(0, v_); }
-
     void range_callback() const { range_callback_(0, vs_.size()); }
+
+    void read_callback(char v) const { read_context_->callback(v); }
 };
 
 } // namespace stream
