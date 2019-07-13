@@ -121,7 +121,7 @@ SCENARIO("Transformations with ranges.")
         {
             rs.vs_ = {1, 2};
             std::array<int, 2> a;
-            auto               n = s.read(a);
+            auto               n = s.read(a).submit();
             THEN("Two elements have been read.") { REQUIRE(n == 2); }
             THEN("The transformed stream reads [2, 3].")
             {
@@ -141,12 +141,12 @@ SCENARIO("Transformations with ranges.")
                     REQUIRE_THAT(a, Equals(array{2, 3}));
                 }
             };
-            auto context = s.read(a, callback);
+            auto sender = s.read(a);
             THEN("Nothing has happened before submit.")
             {
                 REQUIRE_THAT(a, Equals(array{0, 0}));
             }
-            context.submit();
+            sender.submit(callback);
             rs.range_callback();
         }
     }

@@ -30,12 +30,23 @@ struct read_stream
         read_stream& stream_;
         bool         submitted_ = false;
 
-        void submit()
+        void submit(completion_token&& t)
+        {
+            assert(!submitted_);
+
+            submitted_              = true;
+            stream_.range_callback_ = t;
+            ranges::copy(stream_.vs_, std::begin(range_));
+        }
+
+        auto submit()
         {
             assert(!submitted_);
 
             submitted_ = true;
             ranges::copy(stream_.vs_, std::begin(range_));
+
+            return stream_.vs_.size();
         }
     };
 
@@ -58,17 +69,10 @@ struct read_stream
 
     char read() { return v_; }
 
-    std::size_t read(auto& r)
-    {
-        ranges::copy(vs_, std::begin(r));
-        return vs_.size();
-    }
-
     auto read_single() { return context{*this}; }
 
-    template<ranges::Range R> auto read(R&& r, completion_token&& t)
+    template<ranges::Range R> auto read(R&& r)
     {
-        range_callback_ = t;
         return range_read_context<R>{r, *this};
     }
 

@@ -26,7 +26,12 @@ template<class Stream, class F> class transform
 
         range_read_context(C&& c) : child_context_(c) {}
 
-        void submit() { child_context_.submit(); }
+        void submit(completion_token&& t)
+        {
+            child_context_.submit(std::forward<completion_token>(t));
+        }
+
+        auto submit() { return child_context_.submit(); }
     };
     template<class T, class C> struct read_context
     {
@@ -82,22 +87,15 @@ template<class Stream, class F> class transform
 
     auto read() const { return func_(stream_.read()); }
 
-    std::size_t read(ranges::Range& r)
-    {
-        auto tr = output_view::transform(r, func_);
-        return stream_.read(tr);
-    }
-
     template<class T> auto read()
     {
-        return make_read_context<T >(stream_.read_single(), *this);
+        return make_read_context<T>(stream_.read_single(), *this);
     }
 
-    auto read(ranges::Range&& r, completion_token&& t)
+    auto read(ranges::Range&& r)
     {
         return range_read_context{
-            stream_.read(output_view::transform(r, func_),
-                         std::forward<completion_token>(t))};
+            stream_.read(output_view::transform(r, func_))};
     }
 };
 } // namespace stream
