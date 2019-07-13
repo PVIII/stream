@@ -36,12 +36,8 @@ SCENARIO("Transformations with single values.")
 
         WHEN("One is written asynchronously.")
         {
-            s.write(1, [](auto ec, auto n) {
+            s.write(1, [](auto ec) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The number of written elements is 1.")
-                {
-                    REQUIRE(n == 1);
-                }
             });
             ws.callback();
             THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
@@ -96,7 +92,7 @@ SCENARIO("Transformations with ranges.")
                     REQUIRE(n == 2);
                 }
             });
-            ws.callback();
+            ws.range_callback();
             THEN("[2, 3] is written.")
             {
                 REQUIRE(ranges::equal(ws.vs_, array{2, 3}));

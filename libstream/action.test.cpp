@@ -36,13 +36,9 @@ SCENARIO("Actions with single values.")
 
         WHEN("A single value is written asynchronously.")
         {
-            s.write(3, [&](auto ec, auto n) {
+            s.write(3, [&](auto ec) {
                 THEN("The value is written.") { REQUIRE(ws.v_ == 3); }
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The number of written elements is 1.")
-                {
-                    REQUIRE(n == 1);
-                }
             });
         }
     }
@@ -71,17 +67,18 @@ SCENARIO("Actions with ranges.")
 
         WHEN("[3, 4] is written asynchronously.")
         {
-            s.write(array{3, 4}, [&](auto ec, auto n) {
+            auto callback = [&](auto ec, auto n) {
                 THEN("[3, 4] is written.")
                 {
                     REQUIRE(ranges::equal(ws.vs_, array{3, 4}));
                 }
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The number of written elements is 1.")
+                THEN("The number of written elements is 2.")
                 {
                     REQUIRE(n == 2);
                 }
-            });
+            };
+            s.write(array{3, 4}, callback);
         }
 
         WHEN("[0, 1, 2] is generated and written.")

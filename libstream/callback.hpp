@@ -17,6 +17,7 @@ namespace stream
 using error_code = int;
 
 using completion_token = SA::delegate<void(error_code, std::size_t)>;
+using write_token      = SA::delegate<void(error_code)>;
 template<typename T> using read_token = SA::delegate<void(error_code, T v)>;
 
 } // namespace stream

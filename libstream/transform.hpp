@@ -75,10 +75,7 @@ template<class Stream, class F> class transform
         stream_.write(ranges::view::transform(r, func_));
     }
 
-    void write(auto const& v, completion_token&& c)
-    {
-        stream_.write(func_(v), c);
-    }
+    void write(auto const& v, write_token&& c) { stream_.write(func_(v), c); }
 
     void write(ranges::Range const& r, completion_token&& c)
     {

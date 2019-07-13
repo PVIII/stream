@@ -25,7 +25,8 @@ struct write_stream
     value_type              v_ = 0x7F;
     std::vector<value_type> vs_;
 
-    completion_token callback_;
+    write_token      callback_;
+    completion_token range_callback_;
     std::size_t      n_;
 
     void write(value_type v) { v_ = v; }
@@ -36,7 +37,7 @@ struct write_stream
         ranges::copy(r, ranges::back_inserter(vs_));
     }
 
-    void write(value_type v, completion_token c)
+    void write(value_type v, write_token c)
     {
         write(v);
         callback_ = c;
@@ -46,11 +47,13 @@ struct write_stream
     void write(ranges::SizedRange const& r, completion_token c)
     {
         write(r);
-        callback_ = c;
-        n_        = r.size();
+        range_callback_ = c;
+        n_              = r.size();
     }
 
-    void callback() const { callback_(0, n_); }
+    void callback() const { callback_(0); }
+
+    void range_callback() const { range_callback_(0, n_); }
 };
 
 } // namespace stream

@@ -10,6 +10,10 @@
 
 #include <libstream/callback.hpp>
 
+#include <experimental/ranges/range>
+
+namespace ranges = std::experimental::ranges;
+
 namespace stream
 {
 template<class Stream, class Pre> class action
@@ -26,7 +30,13 @@ template<class Stream, class Pre> class action
         stream_.write(v);
     }
 
-    void write(auto const& v, completion_token&& c)
+    void write(ranges::Range const& r, completion_token&& t)
+    {
+        pre_();
+        stream_.write(r, std::forward<completion_token>(t));
+    }
+
+    void write(auto const& v, write_token&& c)
     {
         pre_();
         stream_.write(v, c);
