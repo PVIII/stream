@@ -24,7 +24,7 @@ struct read_stream
     std::vector<char> vs_;
 
     completion_token range_callback_;
-    template<ranges::Range R> struct range_read_context
+    template<ranges::Range R> struct range_context
     {
         R            range_;
         read_stream& stream_;
@@ -73,7 +73,7 @@ struct read_stream
 
     template<ranges::Range R> auto read(R&& r)
     {
-        return range_read_context<R>{r, *this};
+        return range_context<R>{r, *this};
     }
 
     void range_callback() const { range_callback_(0, vs_.size()); }

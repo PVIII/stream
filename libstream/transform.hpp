@@ -20,11 +20,11 @@ namespace stream
 template<class Stream, class F> class transform
 {
   public:
-    template<class C> struct range_read_context
+    template<class C> struct range_context
     {
         C child_context_;
 
-        range_read_context(C&& c) : child_context_(c) {}
+        range_context(C&& c) : child_context_(c) {}
 
         void submit(completion_token&& t)
         {
@@ -91,8 +91,7 @@ template<class Stream, class F> class transform
 
     auto read(ranges::Range&& r)
     {
-        return range_read_context{
-            stream_.read(output_view::transform(r, func_))};
+        return range_context{stream_.read(output_view::transform(r, func_))};
     }
 };
 } // namespace stream
