@@ -10,6 +10,7 @@
 
 #include <libstream/callback.hpp>
 
+#include <cassert>
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
 #include <vector>
@@ -29,12 +30,28 @@ struct write_stream
     completion_token range_callback_;
     std::size_t      n_;
 
+    template<ranges::Range R> struct range_context
+    {
+        R             range_;
+        write_stream& stream_;
+        bool          submitted_ = false;
+
+        void submit()
+        {
+            assert(!submitted_);
+
+            submitted_ = true;
+            stream_.write(range_);
+        }
+    };
+
     void write(value_type v) { v_ = v; }
 
     void write(ranges::Range const& r)
     {
         vs_.clear();
         ranges::copy(r, ranges::back_inserter(vs_));
+        n_ = vs_.size();
     }
 
     void write(value_type v, write_token c)
@@ -44,11 +61,10 @@ struct write_stream
         n_        = 1;
     }
 
-    void write(ranges::SizedRange const& r, completion_token c)
+    template<ranges::Range R> auto write(R&& r, completion_token c)
     {
-        write(r);
         range_callback_ = c;
-        n_              = r.size();
+        return range_context<R>{std::forward<R>(r), *this};
     }
 
     void callback() const { callback_(0); }

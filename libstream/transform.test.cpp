@@ -85,13 +85,16 @@ SCENARIO("Transformations with ranges.")
 
         WHEN("[1, 2] is written asynchronously.")
         {
-            s.write(array{1, 2}, [](auto ec, auto n) {
+            auto callback = [](auto ec, auto n) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
                 THEN("The number of written elements is 2.")
                 {
                     REQUIRE(n == 2);
                 }
-            });
+            };
+            auto a      = array{1, 2};
+            auto sender = s.write(a, callback);
+            sender.submit();
             ws.range_callback();
             THEN("[2, 3] is written.")
             {
