@@ -77,11 +77,10 @@ template<class Stream, class F> class transform
 
     void write(auto const& v, write_token&& c) { stream_.write(func_(v), c); }
 
-    template<ranges::Range R> auto write(R&& r, completion_token&& c)
+    template<ranges::Range R> auto write_async(R&& r)
     {
-        return range_context{
-            stream_.write(ranges::view::transform(std::forward<R>(r), func_),
-                          std::forward<completion_token>(c))};
+        return range_context{stream_.write_async(
+            ranges::view::transform(std::forward<R>(r), func_))};
     }
 
     auto read() const { return func_(stream_.read()); }

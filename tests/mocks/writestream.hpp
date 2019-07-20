@@ -36,11 +36,12 @@ struct write_stream
         write_stream& stream_;
         bool          submitted_ = false;
 
-        void submit()
+        void submit(completion_token&& t)
         {
             assert(!submitted_);
 
-            submitted_ = true;
+            submitted_              = true;
+            stream_.range_callback_ = t;
             stream_.write(range_);
         }
     };
@@ -64,6 +65,11 @@ struct write_stream
     template<ranges::Range R> auto write(R&& r, completion_token c)
     {
         range_callback_ = c;
+        return range_context<R>{std::forward<R>(r), *this};
+    }
+
+    template<ranges::Range R> auto write_async(R&& r)
+    {
         return range_context<R>{std::forward<R>(r), *this};
     }
 

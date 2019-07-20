@@ -93,8 +93,8 @@ SCENARIO("Transformations with ranges.")
                 }
             };
             auto a      = array{1, 2};
-            auto sender = s.write(a, callback);
-            sender.submit();
+            auto sender = s.write_async(a);
+            sender.submit(callback);
             ws.range_callback();
             THEN("[2, 3] is written.")
             {
