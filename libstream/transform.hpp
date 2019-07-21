@@ -35,22 +35,21 @@ template<class Stream, class F> class transform
     };
     template<class T, class C> struct read_context
     {
-        C                     child_context_;
+        C                     child_;
         read_token<T>         token_;
         transform<Stream, F>& stream_;
 
-        read_context(C&& c, transform<Stream, F>& s)
-            : child_context_(c), stream_(s)
-        {
-        }
+        read_context(C&& c, transform<Stream, F>& s) : child_(c), stream_(s) {}
 
         void handler(error_code ec, T v) { token_(ec, stream_.func_(v)); }
+
+        auto submit() { return stream_.func_(child_.submit()); }
 
         void submit(read_token<T>&& t)
         {
             token_       = t;
             using this_t = read_context<T, C>;
-            child_context_.submit(
+            child_.submit(
                 read_token<T>::template create<this_t, &this_t::handler>(this));
         }
     };
@@ -89,11 +88,9 @@ template<class Stream, class F> class transform
             stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
-    auto read() const { return func_(stream_.read()); }
-
     template<class T> auto read()
     {
-        return make_read_context<T>(stream_.read_single(), *this);
+        return make_read_context<T>(stream_.read(), *this);
     }
 
     auto read(ranges::Range&& r)

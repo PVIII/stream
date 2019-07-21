@@ -63,13 +63,13 @@ struct read_stream
             stream_.read_context_ = this;
         }
 
+        auto submit() { return stream_.v_; }
+
         void callback(char v) const { token_(0, v); }
     };
     context* read_context_ = nullptr;
 
-    char read() { return v_; }
-
-    auto read_single() { return context{*this}; }
+    auto read() { return context{*this}; }
 
     template<ranges::Range R> auto read(R&& r)
     {

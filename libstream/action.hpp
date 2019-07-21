@@ -32,10 +32,10 @@ template<class Stream, class Pre> class action
             child_.submit(std::forward<T>(token));
         }
 
-        void submit()
+        auto submit()
         {
             stream_.pre_();
-            child_.submit();
+            return child_.submit();
         }
     };
 
@@ -46,9 +46,11 @@ template<class Stream, class Pre> class action
   public:
     action(Stream& stream, Pre&& pre) : stream_(stream), pre_(pre) {}
 
+    auto read() { return context{stream_.read(), *this}; }
+
     template<ranges::Range R> auto write(R&& r)
     {
-        return context(stream_.write(std::forward<R>(r)), *this);
+        return context{stream_.write(std::forward<R>(r)), *this};
     }
 
     template<class V> auto write(V&& v)

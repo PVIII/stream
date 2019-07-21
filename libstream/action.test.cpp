@@ -7,6 +7,7 @@
 
 #include "action.hpp"
 
+#include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
@@ -21,7 +22,7 @@ namespace ranges = std::experimental::ranges;
 
 SCENARIO("Actions with single values.")
 {
-    GIVEN("A stream that increments a variable for each write.")
+    GIVEN("A write stream that increments a variable for each write.")
     {
         write_stream ws;
         char         counter = 0;
@@ -48,6 +49,43 @@ SCENARIO("Actions with single values.")
                 }
             };
             auto sender = s.write(3);
+            THEN("Before submit the counter is not incremented.")
+            {
+                REQUIRE(counter == 0);
+            }
+            sender.submit(callback);
+        }
+    }
+
+    GIVEN("A read stream that increments a variable for each read.")
+    {
+        read_stream rs;
+        char        counter = 0;
+        auto        s       = action(rs, [&]() { ++counter; });
+
+        WHEN("A single value is read.")
+        {
+            rs.v_  = 1;
+            auto v = s.read().submit();
+            THEN("The value is written.") { REQUIRE(v == 1); }
+            THEN("The counter is incremented by one.")
+            {
+                REQUIRE(counter == 1);
+            }
+        }
+
+        WHEN("A single value is read asynchronously.")
+        {
+            rs.v_         = 1;
+            auto callback = [&](auto ec, auto v) {
+                THEN("The value is written.") { REQUIRE(v == 1); }
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("The counter is incremented by one.")
+                {
+                    REQUIRE(counter == 1);
+                }
+            };
+            auto sender = s.read();
             THEN("Before submit the counter is not incremented.")
             {
                 REQUIRE(counter == 0);

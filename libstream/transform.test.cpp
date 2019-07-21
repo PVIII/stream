@@ -54,7 +54,10 @@ SCENARIO("Transformations with single values.")
         WHEN("The read stream reads 1.")
         {
             rs.v_ = 1;
-            THEN("The transformed stream reads 2.") { REQUIRE(s.read() == 2); }
+            THEN("The transformed stream reads 2.")
+            {
+                REQUIRE(s.read<char>().submit() == 2);
+            }
         }
 
         WHEN("One is read asynchronously.")
