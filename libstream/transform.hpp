@@ -22,16 +22,16 @@ template<class Stream, class F> class transform
   public:
     template<class C> struct range_context
     {
-        C child_context_;
+        C child_;
 
-        range_context(C&& c) : child_context_(c) {}
+        range_context(C&& c) : child_(c) {}
 
         void submit(completion_token&& t)
         {
-            child_context_.submit(std::forward<completion_token>(t));
+            child_.submit(std::forward<completion_token>(t));
         }
 
-        auto submit() { return child_context_.submit(); }
+        auto submit() { return child_.submit(); }
     };
     template<class T, class C> struct read_context
     {
@@ -54,6 +54,19 @@ template<class Stream, class F> class transform
                 read_token<T>::template create<this_t, &this_t::handler>(this));
         }
     };
+    template<class C> struct write_context
+    {
+        C child_context_;
+
+        write_context(C&& c) : child_context_(c) {}
+
+        void submit(write_token&& t)
+        {
+            child_context_.submit(std::forward<write_token>(t));
+        }
+
+        void submit() { child_context_.submit(); }
+    };
 
   private:
     Stream& stream_;
@@ -68,19 +81,12 @@ template<class Stream, class F> class transform
   public:
     transform(Stream& stream, F&& f) : stream_(stream), func_(f) {}
 
-    void write(auto const& v) { stream_.write(func_(v)); }
+    auto write(auto const& v) { return write_context{stream_.write(func_(v))}; }
 
-    void write(ranges::Range const& r)
+    template<ranges::Range R> auto write(R&& r)
     {
-        stream_.write(ranges::view::transform(r, func_));
-    }
-
-    void write(auto const& v, write_token&& c) { stream_.write(func_(v), c); }
-
-    template<ranges::Range R> auto write_async(R&& r)
-    {
-        return range_context{stream_.write_async(
-            ranges::view::transform(std::forward<R>(r), func_))};
+        return range_context{
+            stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
     auto read() const { return func_(stream_.read()); }

@@ -18,28 +18,42 @@ namespace stream
 {
 template<class Stream, class Pre> class action
 {
+  public:
+    template<class C> struct context
+    {
+        C                    child_;
+        action<Stream, Pre>& stream_;
+
+        context(C&& c, action<Stream, Pre>& s) : child_(c), stream_(s) {}
+
+        template<class T> void submit(T&& token)
+        {
+            stream_.pre_();
+            child_.submit(std::forward<T>(token));
+        }
+
+        void submit()
+        {
+            stream_.pre_();
+            child_.submit();
+        }
+    };
+
+  private:
     Stream& stream_;
     Pre     pre_;
 
   public:
     action(Stream& stream, Pre&& pre) : stream_(stream), pre_(pre) {}
 
-    void write(auto const& v)
+    template<ranges::Range R> auto write(R&& r)
     {
-        pre_();
-        stream_.write(v);
+        return context(stream_.write(std::forward<R>(r)), *this);
     }
 
-    void write(ranges::Range const& r, completion_token&& t)
+    template<class V> auto write(V&& v)
     {
-        pre_();
-        stream_.write(r, std::forward<completion_token>(t));
-    }
-
-    void write(auto const& v, write_token&& c)
-    {
-        pre_();
-        stream_.write(v, c);
+        return context{stream_.write(std::forward<V>(v)), *this};
     }
 };
 } // namespace stream

@@ -30,15 +30,17 @@ SCENARIO("Transformations with single values.")
 
         WHEN("One is written.")
         {
-            s.write(1);
+            s.write(1).submit();
             THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
         }
 
         WHEN("One is written asynchronously.")
         {
-            s.write(1, [](auto ec) {
+            auto sender   = s.write(1);
+            auto callback = [](auto ec) {
                 THEN("No error is returned.") { REQUIRE(ec == 0); }
-            });
+            };
+            sender.submit(callback);
             ws.callback();
             THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
         }
@@ -76,7 +78,8 @@ SCENARIO("Transformations with ranges.")
         auto         s = stream::transform(ws, [](auto v) { return v + 1; });
         WHEN("[1, 2] is written.")
         {
-            s.write(array{1, 2});
+            auto a = array{1, 2};
+            s.write(a).submit();
             THEN("[2, 3] is sent.")
             {
                 REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
@@ -93,7 +96,7 @@ SCENARIO("Transformations with ranges.")
                 }
             };
             auto a      = array{1, 2};
-            auto sender = s.write_async(a);
+            auto sender = s.write(a);
             sender.submit(callback);
             ws.range_callback();
             THEN("[2, 3] is written.")
@@ -104,7 +107,7 @@ SCENARIO("Transformations with ranges.")
 
         WHEN("[1, 2, 3] is generated and written.")
         {
-            s.write(ranges::view::iota(1, 4));
+            s.write(ranges::view::iota(1, 4)).submit();
             THEN("[2, 3, 4] is written.")
             {
                 REQUIRE(ranges::equal(ws.vs_, array{2, 3, 4}));

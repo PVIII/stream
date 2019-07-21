@@ -42,33 +42,32 @@ struct write_stream
 
             submitted_              = true;
             stream_.range_callback_ = t;
-            stream_.write(range_);
+
+            stream_.vs_.clear();
+            ranges::copy(range_, ranges::back_inserter(stream_.vs_));
+            stream_.n_ = stream_.vs_.size();
         }
+
+        void submit() { submit({}); }
     };
 
-    void write(value_type v) { v_ = v; }
-
-    void write(ranges::Range const& r)
+    struct write_context
     {
-        vs_.clear();
-        ranges::copy(r, ranges::back_inserter(vs_));
-        n_ = vs_.size();
-    }
+        value_type    value_;
+        write_stream& stream_;
 
-    void write(value_type v, write_token c)
-    {
-        write(v);
-        callback_ = c;
-        n_        = 1;
-    }
+        void submit(write_token&& t)
+        {
+            stream_.callback_ = t;
+            stream_.v_        = value_;
+        }
 
-    template<ranges::Range R> auto write(R&& r, completion_token c)
-    {
-        range_callback_ = c;
-        return range_context<R>{std::forward<R>(r), *this};
-    }
+        void submit() { submit({}); }
+    };
 
-    template<ranges::Range R> auto write_async(R&& r)
+    auto write(value_type v) { return write_context{v, *this}; }
+
+    template<ranges::Range R> auto write(R&& r)
     {
         return range_context<R>{std::forward<R>(r), *this};
     }
