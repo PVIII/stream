@@ -7,6 +7,7 @@
 
 #include "action.hpp"
 
+#include <tests/helpers/range_matcher.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
 
@@ -97,7 +98,7 @@ SCENARIO("Actions with single values.")
 
 SCENARIO("Actions with ranges.")
 {
-    GIVEN("A stream that increments a variable for each write.")
+    GIVEN("A write stream that increments a variable for each write.")
     {
         write_stream ws;
         char         counter = 0;
@@ -148,6 +149,47 @@ SCENARIO("Actions with ranges.")
             {
                 REQUIRE(counter == 1);
             }
+        }
+    }
+    GIVEN("A read stream that increments a variable for each read.")
+    {
+        read_stream rs;
+        char        counter = 0;
+        auto        s       = action(rs, [&]() { ++counter; });
+
+        WHEN("[2, 3] is read.")
+        {
+            rs.vs_ = {2, 3};
+            std::array<int, 2> a;
+            s.read(a).submit();
+            THEN("The stream reads [2, 3].")
+            {
+                REQUIRE_THAT(a, Equals(array{2, 3}));
+            }
+            THEN("The counter is incremented by one.")
+            {
+                REQUIRE(counter == 1);
+            }
+        }
+
+        WHEN("[3, 4] is read asynchronously.")
+        {
+            rs.vs_ = {3, 4};
+            array<int, 2> a{0, 0};
+            auto          callback = [&](auto ec, auto n) {
+                THEN("No error is returned.") { REQUIRE(ec == 0); }
+                THEN("Two values have been read.") { REQUIRE(n == 2); }
+                THEN("The stream reads [3, 4].")
+                {
+                    REQUIRE_THAT(a, Equals(array{3, 4}));
+                }
+                THEN("The counter is incremented by one.")
+                {
+                    REQUIRE(counter == 1);
+                }
+            };
+            auto sender = s.read(a);
+            sender.submit(callback);
         }
     }
 }

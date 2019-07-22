@@ -48,6 +48,11 @@ template<class Stream, class Pre> class action
 
     auto read() { return context{stream_.read(), *this}; }
 
+    template<ranges::Range R> auto read(R&& r)
+    {
+        return context{stream_.read(std::forward<R>(r)), *this};
+    }
+
     template<ranges::Range R> auto write(R&& r)
     {
         return context{stream_.write(std::forward<R>(r)), *this};
