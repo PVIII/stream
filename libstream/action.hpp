@@ -24,7 +24,10 @@ template<class Stream, class Pre> class action
         C                    child_;
         action<Stream, Pre>& stream_;
 
-        context(C&& c, action<Stream, Pre>& s) : child_(c), stream_(s) {}
+        context(C&& c, action<Stream, Pre>& s)
+            : child_(std::forward<C>(c)), stream_(s)
+        {
+        }
 
         template<class T> void submit(T&& token)
         {
@@ -60,9 +63,13 @@ template<class Stream, class Pre> class action
 
     template<class V> auto write(V&& v)
     {
-        return context{stream_.write(std::forward<V>(v)), *this};
+        return context<decltype(stream_.write(std::forward<V>(v)))>{
+            stream_.write(std::forward<V>(v)), *this};
     }
 };
+
+template<class Stream, class Pre>
+action(Stream& stream, Pre&& pre)->action<Stream, Pre>;
 } // namespace stream
 
 #endif // LIBSTREAM_ACTION_HPP_
