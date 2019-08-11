@@ -20,6 +20,11 @@ struct read_callback_interface
 {
     virtual void operator()(stream::error_code, char) = 0;
 };
+
+struct range_callback_interface
+{
+	virtual void operator()(stream::error_code, std::size_t) = 0;
+};
 	
 }
 

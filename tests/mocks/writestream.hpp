@@ -28,8 +28,14 @@ struct write_interface
         virtual void submit(write_token&& t) = 0;
     };
 
-    virtual submit_interface& write(char)                      = 0;
-    virtual submit_interface& write(std::array<int, 2> const&) = 0;
+    struct range_submit_interface
+    {
+        virtual void submit()                     = 0;
+        virtual void submit(completion_token&& t) = 0;
+    };
+
+    virtual submit_interface&       write(char)               = 0;
+    virtual range_submit_interface& write(std::array<int, 2>) = 0;
 };
 
 struct write_stream

@@ -35,15 +35,16 @@ SCENARIO("Simple actions.")
 
     GIVEN("A write stream.")
     {
-        Mock<write_interface::submit_interface> sender_mock;
-        Mock<write_interface>                   stream_mock;
+        Mock<write_interface::submit_interface>       sender_mock;
+        Mock<write_interface::range_submit_interface> range_sender_mock;
+        Mock<write_interface>                         stream_mock;
         When(OverloadedMethod(stream_mock, write,
                               write_interface::submit_interface & (char)))
             .Return(sender_mock.get());
         When(OverloadedMethod(stream_mock, write,
-                              write_interface::submit_interface &
-                                  (array<int, 2> const&)))
-            .Return(sender_mock.get());
+                              write_interface::range_submit_interface &
+                                  (array<int, 2>)))
+            .Return(range_sender_mock.get());
 
         auto s = action(stream_mock.get(), action_mock.get());
 
@@ -88,17 +89,36 @@ SCENARIO("Simple actions.")
         {
             auto sender = s.write(array{2, 3});
             Verify(OverloadedMethod(stream_mock, write,
-                                    write_interface::submit_interface &
-                                        (array<int, 2> const&)));
+                                    write_interface::range_submit_interface &
+                                        (array<int, 2>))
+                       .Using(array{2, 3}));
 
-            WHEN("Synchronous submit is called on the sender.")
+            WHEN("Synchronous submit is called.")
             {
-                Fake(OverloadedMethod(sender_mock, submit, void()));
+                Fake(OverloadedMethod(range_sender_mock, submit, void()));
                 sender.submit();
 
                 Verify(Method(action_mock, operator()) +
-                       OverloadedMethod(sender_mock, submit, void()))
+                       OverloadedMethod(range_sender_mock, submit, void()))
                     .Once();
+            }
+
+            WHEN("Asynchronous submit is called.")
+            {
+                When(OverloadedMethod(range_sender_mock, submit,
+                                      void(completion_token &&)))
+                    .Do([](auto&& t) { t(0, 2); });
+                Mock<range_callback_interface> callback_mock;
+                Fake(Method(callback_mock, operator()));
+
+                sender.submit(callback_mock.get());
+
+                Verify(Method(action_mock, operator()) +
+                       OverloadedMethod(range_sender_mock, submit,
+                                        void(completion_token &&)) +
+                       Method(callback_mock, operator()).Using(0, 2))
+                    .Once();
+                VerifyNoOtherInvocations(callback_mock);
             }
         }
 
@@ -163,29 +183,6 @@ SCENARIO("Actions with ranges.")
         write_stream ws;
         char         counter = 0;
         auto         s       = action(ws, [&]() { ++counter; });
-
-        WHEN("[2, 3] is written.") {}
-
-        WHEN("[3, 4] is written asynchronously.")
-        {
-            auto callback = [&](auto ec, auto n) {
-                THEN("[3, 4] is written.")
-                {
-                    REQUIRE(ranges::equal(ws.vs_, array{3, 4}));
-                }
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The number of written elements is 2.")
-                {
-                    REQUIRE(n == 2);
-                }
-                THEN("The counter is incremented by one.")
-                {
-                    REQUIRE(counter == 1);
-                }
-            };
-            auto sender = s.write(array{3, 4});
-            sender.submit(callback);
-        }
 
         WHEN("[0, 1, 2] is generated and written.")
         {
