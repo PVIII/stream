@@ -61,7 +61,8 @@ template<class Stream, class Pre> class action
 
     template<ranges::Range R> auto write(R&& r)
     {
-        return context{stream_.write(std::forward<R>(r)), *this};
+        return context<decltype(stream_.write(std::forward<R>(r)))>{
+            stream_.write(std::forward<R>(r)), *this};
     }
 
     template<class V> auto write(V&& v)
