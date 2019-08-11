@@ -49,7 +49,10 @@ template<class Stream, class Pre> class action
   public:
     action(Stream& stream, Pre&& pre) : stream_(stream), pre_(pre) {}
 
-    auto read() { return context{stream_.read(), *this}; }
+    auto read()
+    {
+        return context<decltype(stream_.read())>{stream_.read(), *this};
+    }
 
     template<ranges::Range R> auto read(R&& r)
     {
