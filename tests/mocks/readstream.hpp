@@ -18,6 +18,17 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
+struct read_interface
+{
+    struct submit_interface
+    {
+        virtual char submit()                     = 0;
+        virtual void submit(read_token<char>&& t) = 0;
+    };
+
+    virtual submit_interface& read() = 0;
+};
+
 struct read_stream
 {
     char              v_ = 0x7F;

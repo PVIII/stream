@@ -19,14 +19,14 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
-struct submit_interface
-{
-    virtual void submit()                = 0;
-    virtual void submit(write_token&& t) = 0;
-};
-
 struct write_interface
 {
+    struct submit_interface
+    {
+        virtual void submit()                = 0;
+        virtual void submit(write_token&& t) = 0;
+    };
+
     virtual submit_interface& write(char) = 0;
 };
 

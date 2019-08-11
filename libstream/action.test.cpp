@@ -8,6 +8,7 @@
 #include "action.hpp"
 
 #include <tests/helpers/range_matcher.hpp>
+#include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
 
@@ -23,99 +24,109 @@ using namespace std;
 using namespace fakeit;
 namespace ranges = std::experimental::ranges;
 
-SCENARIO("Actions with single values.")
+SCENARIO("Simple actions.")
 {
-    GIVEN("A write stream that executes an action before every write.")
+    struct action_interface
     {
-        struct action_interface
-        {
-            virtual void operator()() = 0;
-        };
-        Mock<submit_interface> sender_mock;
-        Fake(OverloadedMethod(sender_mock, submit, void()));
-        When(OverloadedMethod(sender_mock, submit, void(write_token &&)))
-            .Do([](auto&& t) { t(0); });
-        Mock<write_interface> stream_mock;
+        virtual void operator()() = 0;
+    };
+    Mock<action_interface> action_mock;
+    Fake(Method(action_mock, operator()));
+
+    GIVEN("A write stream.")
+    {
+        Mock<write_interface::submit_interface> sender_mock;
+        Mock<write_interface>                   stream_mock;
         When(Method(stream_mock, write)).Return(sender_mock.get());
-        Mock<action_interface> action_mock;
-        Fake(Method(action_mock, operator()));
 
         auto s = action(stream_mock.get(), action_mock.get());
 
-        WHEN("A single value is written.")
+        WHEN("Write is called.")
         {
-            s.write(2).submit();
+            auto sender = s.write(2);
+            Verify(Method(stream_mock, write).Using(2)).Once();
 
-            THEN("write, prefix and submit are called in this order.")
+            WHEN("Synchronous submit is called on the sender.")
             {
-                Verify(Method(stream_mock, write).Using(2) +
-                       Method(action_mock, operator()) +
+                Fake(OverloadedMethod(sender_mock, submit, void()));
+                sender.submit();
+
+                Verify(Method(action_mock, operator()) +
                        OverloadedMethod(sender_mock, submit, void()))
                     .Once();
-                VerifyNoOtherInvocations(stream_mock);
-                VerifyNoOtherInvocations(action_mock);
-                VerifyNoOtherInvocations(sender_mock);
+            }
+
+            WHEN("Asynchronous submit is called on the sender.")
+            {
+                When(
+                    OverloadedMethod(sender_mock, submit, void(write_token &&)))
+                    .Do([](auto&& t) { t(0); });
+                Mock<write_callback_interface> callback_mock;
+                Fake(Method(callback_mock, operator()));
+
+                sender.submit(callback_mock.get());
+
+                Verify(Method(action_mock, operator()) +
+                       OverloadedMethod(sender_mock, submit,
+                                        void(write_token &&)) +
+                       Method(callback_mock, operator()).Using(0))
+                    .Once();
+                VerifyNoOtherInvocations(callback_mock);
             }
         }
-        WHEN("A single value is written asynchronously.")
-        {
-            struct write_interface
-            {
-                virtual void operator()(stream::error_code) = 0;
-            };
-            Mock<write_interface> callback_mock;
-            Fake(Method(callback_mock, operator()));
 
-            s.write(3).submit(callback_mock.get());
-
-            Verify(Method(stream_mock, write).Using(3) +
-                   Method(action_mock, operator()) +
-                   OverloadedMethod(sender_mock, submit, void(write_token &&)) +
-                   Method(callback_mock, operator()).Using(0))
-                .Once();
-            VerifyNoOtherInvocations(stream_mock);
-            VerifyNoOtherInvocations(action_mock);
-            VerifyNoOtherInvocations(sender_mock);
-            VerifyNoOtherInvocations(callback_mock);
-        }
+        VerifyNoOtherInvocations(stream_mock, stream_mock);
+        VerifyNoOtherInvocations(sender_mock, stream_mock);
     }
 
-    GIVEN("A read stream that increments a variable for each read.")
+    GIVEN("A read stream.")
     {
-        read_stream rs;
-        char        counter = 0;
-        auto        s       = action(rs, [&]() { ++counter; });
+        Mock<read_interface::submit_interface> sender_mock;
+        Mock<read_interface>                   stream_mock;
+        When(Method(stream_mock, read)).Return(sender_mock.get());
+
+        auto s = action(stream_mock.get(), action_mock.get());
 
         WHEN("A single value is read.")
         {
-            rs.v_  = 1;
-            auto v = s.read().submit();
-            THEN("The value is written.") { REQUIRE(v == 1); }
-            THEN("The counter is incremented by one.")
+            auto sender = s.read();
+            Verify(Method(stream_mock, read)).Once();
+
+            WHEN("Synchronous submit is called on the sender")
             {
-                REQUIRE(counter == 1);
+                When(OverloadedMethod(sender_mock, submit, char())).Return(1);
+                auto v = sender.submit();
+
+                REQUIRE(v == 1);
+                Verify(Method(action_mock, operator()) +
+                       OverloadedMethod(sender_mock, submit, char()))
+                    .Once();
+            }
+
+            WHEN("Asynchronous submit is called on the sender.")
+            {
+                Mock<read_callback_interface> callback_mock;
+                Fake(Method(callback_mock, operator()));
+                When(OverloadedMethod(sender_mock, submit,
+                                      void(read_token<char> &&)))
+                    .Do([](auto&& t) { t(0, 1); });
+                sender.submit(callback_mock.get());
+
+                Verify(Method(stream_mock, read) +
+                       Method(action_mock, operator()) +
+                       OverloadedMethod(sender_mock, submit,
+                                        void(read_token<char> &&)) +
+                       Method(callback_mock, operator()).Using(0, 1))
+                    .Once();
+                VerifyNoOtherInvocations(callback_mock);
             }
         }
 
-        WHEN("A single value is read asynchronously.")
-        {
-            rs.v_         = 1;
-            auto callback = [&](auto ec, auto v) {
-                THEN("The value is written.") { REQUIRE(v == 1); }
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The counter is incremented by one.")
-                {
-                    REQUIRE(counter == 1);
-                }
-            };
-            auto sender = s.read();
-            THEN("Before submit the counter is not incremented.")
-            {
-                REQUIRE(counter == 0);
-            }
-            sender.submit(callback);
-        }
+        VerifyNoOtherInvocations(sender_mock);
+        VerifyNoOtherInvocations(stream_mock);
     }
+
+    VerifyNoOtherInvocations(action_mock);
 }
 
 SCENARIO("Actions with ranges.")
