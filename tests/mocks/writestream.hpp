@@ -10,6 +10,9 @@
 
 #include <libstream/callback.hpp>
 
+#include <catch2/catch.hpp>
+#include <catch2/trompeloeil.hpp>
+
 #include <array>
 #include <cassert>
 #include <experimental/ranges/algorithm>
@@ -20,22 +23,28 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
-struct write_interface
+struct write_mock
 {
-    struct submit_interface
+    struct sender
     {
-        virtual void submit()                = 0;
-        virtual void submit(write_token&& t) = 0;
+        MAKE_MOCK0(submit, void());
+        MAKE_MOCK1(submit, void(write_token&&));
     };
-
-    struct range_submit_interface
+    struct range_sender
     {
-        virtual void submit()                     = 0;
-        virtual void submit(completion_token&& t) = 0;
+        MAKE_MOCK0(submit, void());
+        MAKE_MOCK1(submit, void(completion_token&&));
     };
+    sender       sender_;
+    range_sender range_sender_;
 
-    virtual submit_interface&       write(char)               = 0;
-    virtual range_submit_interface& write(std::array<int, 2>) = 0;
+    MAKE_MOCK1(write, sender&(char));
+    range_sender& write(ranges::Range&& r)
+    {
+        write_(r);
+        return range_sender_;
+    }
+    MAKE_MOCK1(write_, void(std::array<int, 2> r));
 };
 
 struct write_stream

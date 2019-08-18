@@ -10,7 +10,7 @@ class LibStream(ConanFile):
     settings = "os", "compiler", "arch", "build_type"
     generators = "cmake"
     requires = "cmcstl2/bee0705@pviii/stable", "delegate/1.0.0@pviii/stable"
-    build_requires = "prebuilt-catch2/2.7.1@pviii/stable", "FakeIt/2.0.5@gasuketsu/stable"
+    build_requires = "prebuilt-catch2/2.7.1@pviii/stable", "trompeloeil/v34@rollbear/stable"
     exports_sources = "**"
     no_copy_source = True
 
@@ -18,11 +18,7 @@ class LibStream(ConanFile):
         cmake = CMake(self)
         cmake.configure()
         cmake.build()
-        if self.settings.build_type == "Debug":
-            cmake.test(output_on_failure=True)
-        else:
-            self.output.warn("FakeIt only works without optimizations. "
-            "No tests are run because this is not a debug build.")
+        cmake.test(output_on_failure=True)
 
     def package(self):
         self.copy("*.hpp", excludes="test/*")

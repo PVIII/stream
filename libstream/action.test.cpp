@@ -13,7 +13,7 @@
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
-#include <fakeit.hpp>
+#include <catch2/trompeloeil.hpp>
 
 #include <array>
 #include <experimental/ranges/algorithm>
@@ -21,159 +21,102 @@
 
 using namespace stream;
 using namespace std;
-using namespace fakeit;
 namespace ranges = std::experimental::ranges;
+using trompeloeil::_;
+
+struct action_mock
+{
+    void operator()() const { return call(); }
+    MAKE_CONST_MOCK0(call, void());
+};
 
 SCENARIO("Simple actions.")
 {
-    struct action_interface
-    {
-        virtual void operator()() = 0;
-    };
-    Mock<action_interface> action_mock;
-    Fake(Method(action_mock, operator()));
-
     GIVEN("A write stream.")
     {
-        Mock<write_interface::submit_interface>       sender_mock;
-        Mock<write_interface::range_submit_interface> range_sender_mock;
-        Mock<write_interface>                         stream_mock;
-        When(OverloadedMethod(stream_mock, write,
-                              write_interface::submit_interface & (char)))
-            .Return(sender_mock.get());
-        When(OverloadedMethod(stream_mock, write,
-                              write_interface::range_submit_interface &
-                                  (array<int, 2>)))
-            .Return(range_sender_mock.get());
-
-        auto s = action(stream_mock.get(), action_mock.get());
+        write_mock  writer;
+        action_mock closure;
+        auto        s = action(writer, closure);
 
         WHEN("Single value write is called.")
         {
+            REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
             auto sender = s.write(2);
-            Verify(OverloadedMethod(stream_mock, write,
-                                    write_interface::submit_interface & (char))
-                       .Using(2))
-                .Once();
+            REQUIRE_CALL(closure, call());
 
             WHEN("Synchronous submit is called on the sender.")
             {
-                Fake(OverloadedMethod(sender_mock, submit, void()));
+                ALLOW_CALL(writer.sender_, submit());
                 sender.submit();
-
-                Verify(Method(action_mock, operator()) +
-                       OverloadedMethod(sender_mock, submit, void()))
-                    .Once();
             }
 
             WHEN("Asynchronous submit is called on the sender.")
             {
-                When(
-                    OverloadedMethod(sender_mock, submit, void(write_token &&)))
-                    .Do([](auto&& t) { t(0); });
-                Mock<write_callback_interface> callback_mock;
-                Fake(Method(callback_mock, operator()));
+                ALLOW_CALL(writer.sender_, submit(ANY(write_token)))
+                    .SIDE_EFFECT(_1(0););
+                write_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_)).WITH(_1 == 0);
 
-                sender.submit(callback_mock.get());
-
-                Verify(Method(action_mock, operator()) +
-                       OverloadedMethod(sender_mock, submit,
-                                        void(write_token &&)) +
-                       Method(callback_mock, operator()).Using(0))
-                    .Once();
-                VerifyNoOtherInvocations(callback_mock);
+                sender.submit(callback_mock);
             }
         }
 
         WHEN("Range write is called.")
         {
+            REQUIRE_CALL(writer, write_(array{2, 3}));
             auto sender = s.write(array{2, 3});
-            Verify(OverloadedMethod(stream_mock, write,
-                                    write_interface::range_submit_interface &
-                                        (array<int, 2>))
-                       .Using(array{2, 3}));
+            REQUIRE_CALL(closure, call());
 
             WHEN("Synchronous submit is called.")
             {
-                Fake(OverloadedMethod(range_sender_mock, submit, void()));
+                ALLOW_CALL(writer.range_sender_, submit());
                 sender.submit();
-
-                Verify(Method(action_mock, operator()) +
-                       OverloadedMethod(range_sender_mock, submit, void()))
-                    .Once();
             }
 
             WHEN("Asynchronous submit is called.")
             {
-                When(OverloadedMethod(range_sender_mock, submit,
-                                      void(completion_token &&)))
-                    .Do([](auto&& t) { t(0, 2); });
-                Mock<range_callback_interface> callback_mock;
-                Fake(Method(callback_mock, operator()));
+                ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
+                    .SIDE_EFFECT(_1(0, 2));
+                range_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 2);
 
-                sender.submit(callback_mock.get());
-
-                Verify(Method(action_mock, operator()) +
-                       OverloadedMethod(range_sender_mock, submit,
-                                        void(completion_token &&)) +
-                       Method(callback_mock, operator()).Using(0, 2))
-                    .Once();
-                VerifyNoOtherInvocations(callback_mock);
+                sender.submit(callback_mock);
             }
         }
-
-        VerifyNoOtherInvocations(stream_mock, stream_mock);
-        VerifyNoOtherInvocations(sender_mock, stream_mock);
     }
 
     GIVEN("A read stream.")
     {
-        Mock<read_interface::submit_interface> sender_mock;
-        Mock<read_interface>                   stream_mock;
-        When(Method(stream_mock, read)).Return(sender_mock.get());
-
-        auto s = action(stream_mock.get(), action_mock.get());
+        read_mock   reader;
+        action_mock closure;
+        auto        s = action(reader, closure);
 
         WHEN("A single value is read.")
         {
+            REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
             auto sender = s.read();
-            Verify(Method(stream_mock, read)).Once();
+            REQUIRE_CALL(closure, call());
 
             WHEN("Synchronous submit is called on the sender")
             {
-                When(OverloadedMethod(sender_mock, submit, char())).Return(1);
+                ALLOW_CALL(reader.sender_, submit()).RETURN(1);
                 auto v = sender.submit();
-
                 REQUIRE(v == 1);
-                Verify(Method(action_mock, operator()) +
-                       OverloadedMethod(sender_mock, submit, char()))
-                    .Once();
             }
 
             WHEN("Asynchronous submit is called on the sender.")
             {
-                Mock<read_callback_interface> callback_mock;
-                Fake(Method(callback_mock, operator()));
-                When(OverloadedMethod(sender_mock, submit,
-                                      void(read_token<char> &&)))
-                    .Do([](auto&& t) { t(0, 1); });
-                sender.submit(callback_mock.get());
+                ALLOW_CALL(reader.sender_, submit(ANY(read_token<char>)))
+                    .SIDE_EFFECT(_1(0, 1););
+                read_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 1);
 
-                Verify(Method(stream_mock, read) +
-                       Method(action_mock, operator()) +
-                       OverloadedMethod(sender_mock, submit,
-                                        void(read_token<char> &&)) +
-                       Method(callback_mock, operator()).Using(0, 1))
-                    .Once();
-                VerifyNoOtherInvocations(callback_mock);
+                sender.submit(callback_mock);
             }
         }
-
-        VerifyNoOtherInvocations(sender_mock);
-        VerifyNoOtherInvocations(stream_mock);
     }
-
-    VerifyNoOtherInvocations(action_mock);
 }
 
 SCENARIO("Actions with ranges.")
