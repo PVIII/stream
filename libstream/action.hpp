@@ -56,7 +56,8 @@ template<class Stream, class Pre> class action
 
     template<ranges::Range R> auto read(R&& r)
     {
-        return context{stream_.read(std::forward<R>(r)), *this};
+        return context<decltype(stream_.read(std::forward<R>(r)))>{
+            stream_.read(std::forward<R>(r)), *this};
     }
 
     template<ranges::Range R> auto write(R&& r)
@@ -74,6 +75,7 @@ template<class Stream, class Pre> class action
 
 template<class Stream, class Pre>
 action(Stream& stream, Pre&& pre)->action<Stream, Pre>;
+
 } // namespace stream
 
 #endif // LIBSTREAM_ACTION_HPP_

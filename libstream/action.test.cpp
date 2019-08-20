@@ -63,7 +63,7 @@ SCENARIO("Simple actions.")
 
         WHEN("Range write is called.")
         {
-            REQUIRE_CALL(writer, write_(array{2, 3}));
+            REQUIRE_CALL(writer, write_(vector{2, 3}));
             auto sender = s.write(array{2, 3});
             REQUIRE_CALL(closure, call());
 
@@ -80,6 +80,30 @@ SCENARIO("Simple actions.")
                 range_callback_mock callback_mock;
                 REQUIRE_CALL(callback_mock, call(_, _))
                     .WITH(_1 == 0 && _2 == 2);
+
+                sender.submit(callback_mock);
+            }
+        }
+
+        WHEN("[0, 1, 2] is generated and written.")
+        {
+            REQUIRE_CALL(writer, write_(vector{0, 1, 2}));
+            auto sender = s.write(ranges::view::iota(0, 3));
+            REQUIRE_CALL(closure, call());
+
+            WHEN("Synchronous submit is called.")
+            {
+                ALLOW_CALL(writer.range_sender_, submit());
+                sender.submit();
+            }
+
+            WHEN("Asynchronous submit is called.")
+            {
+                ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
+                    .SIDE_EFFECT(_1(0, 3));
+                range_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 3);
 
                 sender.submit(callback_mock);
             }
@@ -116,69 +140,32 @@ SCENARIO("Simple actions.")
                 sender.submit(callback_mock);
             }
         }
-    }
-}
 
-SCENARIO("Actions with ranges.")
-{
-    GIVEN("A write stream that increments a variable for each write.")
-    {
-        write_stream ws;
-        char         counter = 0;
-        auto         s       = action(ws, [&]() { ++counter; });
-
-        WHEN("[0, 1, 2] is generated and written.")
+        WHEN("A range is read.")
         {
-            s.write(ranges::view::iota(0, 3)).submit();
-            THEN("[0, 1, 2] is written.")
-            {
-                REQUIRE(ranges::equal(ws.vs_, array{0, 1, 2}));
-            }
-            THEN("The counter is incremented by exactly one.")
-            {
-                REQUIRE(counter == 1);
-            }
-        }
-    }
-    GIVEN("A read stream that increments a variable for each read.")
-    {
-        read_stream rs;
-        char        counter = 0;
-        auto        s       = action(rs, [&]() { ++counter; });
-
-        WHEN("[2, 3] is read.")
-        {
-            rs.vs_ = {2, 3};
+            REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{2, 3});
             std::array<int, 2> a;
-            s.read(a).submit();
-            THEN("The stream reads [2, 3].")
+            auto               sender = s.read(a);
+            REQUIRE_CALL(closure, call());
+
+            WHEN("Synchronous submit is called on the sender")
             {
+                ALLOW_CALL(reader.range_sender_, submit());
+                sender.submit();
                 REQUIRE_THAT(a, Equals(array{2, 3}));
             }
-            THEN("The counter is incremented by one.")
-            {
-                REQUIRE(counter == 1);
-            }
-        }
 
-        WHEN("[3, 4] is read asynchronously.")
-        {
-            rs.vs_ = {3, 4};
-            array<int, 2> a{0, 0};
-            auto          callback = [&](auto ec, auto n) {
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("Two values have been read.") { REQUIRE(n == 2); }
-                THEN("The stream reads [3, 4].")
-                {
-                    REQUIRE_THAT(a, Equals(array{3, 4}));
-                }
-                THEN("The counter is incremented by one.")
-                {
-                    REQUIRE(counter == 1);
-                }
-            };
-            auto sender = s.read(a);
-            sender.submit(callback);
+            WHEN("Asynchronous submit is called on the sender.")
+            {
+                ALLOW_CALL(reader.range_sender_, submit(ANY(completion_token)))
+                    .SIDE_EFFECT(_1(0, 2););
+                read_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 2);
+                sender.submit(callback_mock);
+
+                REQUIRE_THAT(a, Equals(array{2, 3}));
+            }
         }
     }
 }

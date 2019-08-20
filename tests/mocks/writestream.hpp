@@ -38,13 +38,15 @@ struct write_mock
     sender       sender_;
     range_sender range_sender_;
 
-    MAKE_MOCK1(write, sender&(char));
+    MAKE_MOCK1(write, sender&(int));
     range_sender& write(ranges::Range&& r)
     {
-        write_(r);
+        std::vector<int> v;
+        ranges::copy(r, ranges::back_inserter(v));
+        write_(v);
         return range_sender_;
     }
-    MAKE_MOCK1(write_, void(std::array<int, 2> r));
+    MAKE_MOCK1(write_, void(std::vector<int>));
 };
 
 struct write_stream

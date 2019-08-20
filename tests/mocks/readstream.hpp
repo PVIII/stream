@@ -40,10 +40,12 @@ struct read_mock
     MAKE_MOCK0(read, sender&());
     range_sender& read(ranges::Range&& r)
     {
-        read_(r);
+        std::vector<int> v;
+        read_(v);
+        ranges::copy(v, ranges::begin(r));
         return range_sender_;
     }
-    MAKE_MOCK1(read_, void(std::array<int, 2>& r));
+    MAKE_MOCK1(read_, void(std::vector<int>& r));
 };
 
 struct read_stream
