@@ -10,6 +10,7 @@
 #include <catch2/catch.hpp>
 #include <catch2/trompeloeil.hpp>
 
+#include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
@@ -156,4 +157,9 @@ SCENARIO("Transformations with single values.")
             }
         }
     }
+}
+
+SCENARIO("R-value writer and callback")
+{
+    [[maybe_unused]] auto s = stream::transform(move_only{}, [] {});
 }

@@ -43,11 +43,14 @@ template<class Stream, class Pre> class action
     };
 
   private:
-    Stream& stream_;
-    Pre     pre_;
+    Stream stream_;
+    Pre    pre_;
 
   public:
-    action(Stream& stream, Pre&& pre) : stream_(stream), pre_(pre) {}
+    action(Stream&& stream, Pre&& pre)
+        : stream_(std::forward<Stream>(stream)), pre_(pre)
+    {
+    }
 
     auto read()
     {
@@ -73,8 +76,9 @@ template<class Stream, class Pre> class action
     }
 };
 
-template<class Stream, class Pre>
-action(Stream& stream, Pre&& pre)->action<Stream, Pre>;
+template<class Stream, class Pre> action(Stream&, Pre &&)->action<Stream&, Pre>;
+
+template<class Stream, class Pre> action(Stream&&, Pre &&)->action<Stream, Pre>;
 
 } // namespace stream
 

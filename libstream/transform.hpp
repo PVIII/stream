@@ -78,7 +78,7 @@ template<class Stream, class F> class transform
     }
 
   public:
-    transform(Stream& stream, F&& f) : stream_(stream), func_(f) {}
+    transform(Stream&& stream, F&& f) : stream_(stream), func_(f) {}
 
     template<class V> auto write(V&& v)
     {
@@ -104,6 +104,11 @@ template<class Stream, class F> class transform
             r, func_)))>{stream_.read(output_view::transform(r, func_))};
     }
 };
+
+template<class Stream, class F> transform(Stream&, F &&)->transform<Stream&, F>;
+
+template<class Stream, class F> transform(Stream&&, F &&)->transform<Stream, F>;
+
 } // namespace stream
 
 #endif // LIBSTREAM_TRANSFORM_HPP_

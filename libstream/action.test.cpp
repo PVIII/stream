@@ -7,6 +7,7 @@
 
 #include "action.hpp"
 
+#include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
@@ -168,4 +169,9 @@ SCENARIO("Simple actions.")
             }
         }
     }
+}
+
+SCENARIO("R-value writer and callback")
+{
+    [[maybe_unused]] auto s = action(move_only{}, [] {});
 }
