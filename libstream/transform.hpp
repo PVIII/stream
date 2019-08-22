@@ -80,11 +80,16 @@ template<class Stream, class F> class transform
   public:
     transform(Stream& stream, F&& f) : stream_(stream), func_(f) {}
 
-    auto write(auto const& v) { return write_context{stream_.write(func_(v))}; }
+    template<class V> auto write(V&& v)
+    {
+        return write_context<decltype(stream_.write(std::forward<V>(
+            func_(v))))>{stream_.write(std::forward<V>(func_(v)))};
+    }
 
     template<ranges::Range R> auto write(R&& r)
     {
-        return range_context{
+        return range_context<decltype(
+            stream_.write(ranges::view::transform(std::forward<R>(r), func_)))>{
             stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
@@ -95,7 +100,8 @@ template<class Stream, class F> class transform
 
     auto read(ranges::Range&& r)
     {
-        return range_context{stream_.read(output_view::transform(r, func_))};
+        return range_context<decltype(stream_.read(output_view::transform(
+            r, func_)))>{stream_.read(output_view::transform(r, func_))};
     }
 };
 } // namespace stream

@@ -8,8 +8,10 @@
 #include <libstream/transform.hpp>
 
 #include <catch2/catch.hpp>
+#include <catch2/trompeloeil.hpp>
 
 #include <tests/helpers/range_matcher.hpp>
+#include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
 
@@ -20,139 +22,138 @@
 using namespace stream;
 using namespace std;
 namespace ranges = std::experimental::ranges;
+using trompeloeil::_;
 
 SCENARIO("Transformations with single values.")
 {
     GIVEN("A write stream that adds one.")
     {
-        write_stream ws;
-        auto         s = stream::transform(ws, [](auto v) { return v + 1; });
+        write_mock writer;
+        auto       s = stream::transform(writer, [](auto v) { return v + 1; });
 
-        WHEN("One is written.")
+        WHEN("Single write is called")
         {
-            s.write(1).submit();
-            THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
+            REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+            auto sender = s.write(1);
+
+            WHEN("Synchronous submit is called on the sender.")
+            {
+                REQUIRE_CALL(writer.sender_, submit());
+                sender.submit();
+            }
+
+            WHEN("Asynchronous submit is called on the sender.")
+            {
+                REQUIRE_CALL(writer.sender_, submit(ANY(write_token)))
+                    .SIDE_EFFECT(_1(0););
+                write_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_)).WITH(_1 == 0);
+
+                sender.submit(callback_mock);
+            }
         }
 
-        WHEN("One is written asynchronously.")
+        WHEN("Range write is called")
         {
-            auto sender   = s.write(1);
-            auto callback = [](auto ec) {
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-            };
-            sender.submit(callback);
-            ws.callback();
-            THEN("Two is stored.") { REQUIRE(ws.v_ == 2); }
+            REQUIRE_CALL(writer, write_(vector{2, 3}));
+            auto a      = array{1, 2};
+            auto sender = s.write(a);
+
+            WHEN("Synchronous submit is called on the sender.")
+            {
+                REQUIRE_CALL(writer.range_sender_, submit());
+                sender.submit();
+            }
+
+            WHEN("Asynchronous submit is called on the sender.")
+            {
+                ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
+                    .SIDE_EFFECT(_1(0, 2));
+                range_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 2);
+
+                sender.submit(callback_mock);
+            }
+        }
+
+        WHEN("[0, 1, 2] is generated and written.")
+        {
+            REQUIRE_CALL(writer, write_(vector{1, 2, 3}));
+            auto sender = s.write(ranges::view::iota(0, 3));
+
+            WHEN("Synchronous submit is called.")
+            {
+                ALLOW_CALL(writer.range_sender_, submit());
+                sender.submit();
+            }
+
+            WHEN("Asynchronous submit is called.")
+            {
+                ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
+                    .SIDE_EFFECT(_1(0, 3));
+                range_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 3);
+
+                sender.submit(callback_mock);
+            }
         }
     }
 
     GIVEN("A read stream that adds one.")
     {
-        read_stream rs;
-        auto        s = stream::transform(rs, [](auto v) { return v + 1; });
+        read_mock reader;
+        auto      s = stream::transform(reader, [](auto v) { return v + 1; });
 
-        WHEN("The read stream reads 1.")
+        WHEN("Single read is called")
         {
-            rs.v_ = 1;
-            THEN("The transformed stream reads 2.")
+            REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
+            auto sender = s.read<int>();
+
+            WHEN("Synchronous submit is called on the sender.")
             {
-                REQUIRE(s.read<char>().submit() == 2);
+                REQUIRE_CALL(reader.sender_, submit()).RETURN(1);
+                auto v = sender.submit();
+                REQUIRE(v == 2);
+            }
+
+            WHEN("Asynchronous submit is called on the sender.")
+            {
+                REQUIRE_CALL(reader.sender_, submit(ANY(read_token<int>)))
+                    .SIDE_EFFECT(_1(0, 1););
+                read_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 2);
+
+                sender.submit(callback_mock);
             }
         }
 
-        WHEN("One is read asynchronously.")
+        WHEN("A range is read.")
         {
-            auto callback = [](auto ec, auto v) {
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The returned value is 2.") { REQUIRE(v == 2); }
-            };
-            auto sender = s.read<char>();
-            sender.submit(callback);
-            rs.read_callback(1);
-        }
-    }
-}
-
-SCENARIO("Transformations with ranges.")
-{
-    GIVEN("A write stream that adds 1 to a range.")
-    {
-        write_stream ws;
-        auto         s = stream::transform(ws, [](auto v) { return v + 1; });
-        WHEN("[1, 2] is written.")
-        {
-            auto a = array{1, 2};
-            s.write(a).submit();
-            THEN("[2, 3] is sent.")
-            {
-                REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
-            }
-        }
-
-        WHEN("[1, 2] is written asynchronously.")
-        {
-            auto callback = [](auto ec, auto n) {
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("The number of written elements is 2.")
-                {
-                    REQUIRE(n == 2);
-                }
-            };
-            auto a      = array{1, 2};
-            auto sender = s.write(a);
-            sender.submit(callback);
-            ws.range_callback();
-            THEN("[2, 3] is written.")
-            {
-                REQUIRE(ranges::equal(ws.vs_, array{2, 3}));
-            }
-        }
-
-        WHEN("[1, 2, 3] is generated and written.")
-        {
-            s.write(ranges::view::iota(1, 4)).submit();
-            THEN("[2, 3, 4] is written.")
-            {
-                REQUIRE(ranges::equal(ws.vs_, array{2, 3, 4}));
-            }
-        }
-    }
-
-    GIVEN("A read stream that adds one to the range.")
-    {
-        read_stream rs;
-        auto        s = stream::transform(rs, [](auto v) { return v + 1; });
-        WHEN("The read stream reads [1, 2].")
-        {
-            rs.vs_ = {1, 2};
+            REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1, 2});
             std::array<int, 2> a;
-            auto               n = s.read(a).submit();
-            THEN("Two elements have been read.") { REQUIRE(n == 2); }
-            THEN("The transformed stream reads [2, 3].")
+            auto               sender = s.read(a);
+
+            WHEN("Synchronous submit is called on the sender")
             {
+                ALLOW_CALL(reader.range_sender_, submit());
+                sender.submit();
                 REQUIRE_THAT(a, Equals(array{2, 3}));
             }
-        }
 
-        WHEN("The stream reads [1, 2] asynchronously.")
-        {
-            rs.vs_ = {1, 2};
-            std::array<int, 2> a{0, 0};
-            auto               callback = [&](auto ec, auto n) {
-                THEN("No error is returned.") { REQUIRE(ec == 0); }
-                THEN("2 values have been read.") { REQUIRE(n == 2); }
-                THEN("The transformed stream reads [2, 3].")
-                {
-                    REQUIRE_THAT(a, Equals(array{2, 3}));
-                }
-            };
-            auto sender = s.read(a);
-            THEN("Nothing has happened before submit.")
+            WHEN("Asynchronous submit is called on the sender.")
             {
-                REQUIRE_THAT(a, Equals(array{0, 0}));
+                ALLOW_CALL(reader.range_sender_, submit(ANY(completion_token)))
+                    .SIDE_EFFECT(_1(0, 2););
+                read_callback_mock callback_mock;
+                REQUIRE_CALL(callback_mock, call(_, _))
+                    .WITH(_1 == 0 && _2 == 2);
+                sender.submit(callback_mock);
+
+                REQUIRE_THAT(a, Equals(array{2, 3}));
             }
-            sender.submit(callback);
-            rs.range_callback();
         }
     }
 }
