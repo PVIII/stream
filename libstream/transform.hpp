@@ -34,24 +34,29 @@ template<class Stream, class F> class transform
 
         auto submit() { return child_.submit(); }
     };
-    template<class T, class C> struct read_context
+    template<class C> struct read_context
     {
-        C                     child_;
-        read_token<T>         token_;
-        transform<Stream, F>& stream_;
+        using value_type = decltype(std::declval<C>().submit());
+
+        C                      child_;
+        read_token<value_type> token_;
+        transform<Stream, F>&  stream_;
 
         read_context(C&& c, transform<Stream, F>& s) : child_(c), stream_(s) {}
 
-        void handler(error_code ec, T v) { token_(ec, stream_.func_(v)); }
+        void handler(error_code ec, value_type v)
+        {
+            token_(ec, stream_.func_(v));
+        }
 
         auto submit() { return stream_.func_(child_.submit()); }
 
-        void submit(read_token<T>&& t)
+        void submit(read_token<value_type>&& t)
         {
             token_       = t;
-            using this_t = read_context<T, C>;
-            child_.submit(
-                read_token<T>::template create<this_t, &this_t::handler>(this));
+            using this_t = read_context<C>;
+            child_.submit(read_token<value_type>::template create<
+                          this_t, &this_t::handler>(this));
         }
     };
     template<class C> struct write_context
@@ -72,10 +77,9 @@ template<class Stream, class F> class transform
     Stream& stream_;
     F       func_;
 
-    template<class T, class C>
-    auto make_read_context(C&& c, transform<Stream, F>& s)
+    template<class C> auto make_read_context(C&& c, transform<Stream, F>& s)
     {
-        return read_context<T, C>{std::forward<C>(c), s};
+        return read_context<C>{std::forward<C>(c), s};
     }
 
   public:
@@ -94,10 +98,7 @@ template<class Stream, class F> class transform
             stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
-    template<class T> auto read()
-    {
-        return make_read_context<T>(stream_.read(), *this);
-    }
+    auto read() { return make_read_context(stream_.read(), *this); }
 
     auto read(ranges::Range&& r)
     {
