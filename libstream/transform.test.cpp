@@ -163,3 +163,10 @@ SCENARIO("R-value writer and callback")
 {
     [[maybe_unused]] auto s = stream::transform(move_only{}, [] {});
 }
+
+SCENARIO("Pipe operator")
+{
+    write_mock writer;
+
+    [[maybe_unused]] auto s = transform_p([](int v) { return v; }) | writer;
+}

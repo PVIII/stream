@@ -10,6 +10,7 @@
 
 #include <liboutput_view/transform.hpp>
 #include <libstream/callback.hpp>
+#include <libstream/pipe.hpp>
 
 #include <experimental/ranges/range>
 
@@ -106,8 +107,25 @@ template<class Stream, class F> class transform
 };
 
 template<class Stream, class F> transform(Stream&, F &&)->transform<Stream&, F>;
-
 template<class Stream, class F> transform(Stream&&, F &&)->transform<Stream, F>;
+
+template<class F> class transform_pipe
+{
+    F f_;
+
+  public:
+    transform_pipe(F&& f) : f_(f) {}
+
+    template<class Stream> auto pipe(Stream&& s) const
+    {
+        return transform{std::forward<Stream>(s), f_};
+    }
+};
+
+template<class F> auto transform_p(F&& f)
+{
+    return transform_pipe{std::forward<F>(f)};
+}
 
 } // namespace stream
 

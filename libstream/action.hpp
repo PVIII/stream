@@ -9,6 +9,7 @@
 #define LIBSTREAM_ACTION_HPP_
 
 #include <libstream/callback.hpp>
+#include <libstream/pipe.hpp>
 
 #include <experimental/ranges/range>
 
@@ -77,8 +78,25 @@ template<class Stream, class Pre> class action
 };
 
 template<class Stream, class Pre> action(Stream&, Pre &&)->action<Stream&, Pre>;
-
 template<class Stream, class Pre> action(Stream&&, Pre &&)->action<Stream, Pre>;
+
+template<class Pre> class action_pipe
+{
+    Pre pre_;
+
+  public:
+    action_pipe(Pre&& pre) : pre_(pre) {}
+
+    template<class Stream> auto pipe(Stream&& s) const
+    {
+        return action{std::forward<Stream>(s), pre_};
+    }
+};
+
+template<class Pre> auto action_p(Pre&& pre)
+{
+    return action_pipe{std::forward<Pre>(pre)};
+}
 
 } // namespace stream
 

@@ -175,3 +175,10 @@ SCENARIO("R-value writer and callback")
 {
     [[maybe_unused]] auto s = action(move_only{}, [] {});
 }
+
+SCENARIO("Pipe operator")
+{
+    write_mock writer;
+
+    [[maybe_unused]] auto s = action_p([] {}) | writer;
+}
