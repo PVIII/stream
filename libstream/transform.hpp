@@ -18,7 +18,7 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
-template<class Stream, class F> class transform
+template<class Stream, class F> class transform_fn
 {
   public:
     template<class C> struct range_context
@@ -38,11 +38,13 @@ template<class Stream, class F> class transform
     {
         using value_type = decltype(std::declval<C>().submit());
 
-        C                      child_;
-        read_token<value_type> token_;
-        transform<Stream, F>&  stream_;
+        C                        child_;
+        read_token<value_type>   token_;
+        transform_fn<Stream, F>& stream_;
 
-        read_context(C&& c, transform<Stream, F>& s) : child_(c), stream_(s) {}
+        read_context(C&& c, transform_fn<Stream, F>& s) : child_(c), stream_(s)
+        {
+        }
 
         void handler(error_code ec, value_type v)
         {
@@ -77,13 +79,13 @@ template<class Stream, class F> class transform
     Stream& stream_;
     F       func_;
 
-    template<class C> auto make_read_context(C&& c, transform<Stream, F>& s)
+    template<class C> auto make_read_context(C&& c, transform_fn<Stream, F>& s)
     {
         return read_context<C>{std::forward<C>(c), s};
     }
 
   public:
-    transform(Stream&& stream, F&& f) : stream_(stream), func_(f) {}
+    transform_fn(Stream&& stream, F&& f) : stream_(stream), func_(f) {}
 
     template<class V> auto write(V&& v)
     {
@@ -107,8 +109,10 @@ template<class Stream, class F> class transform
     }
 };
 
-template<class Stream, class F> transform(Stream&, F &&)->transform<Stream&, F>;
-template<class Stream, class F> transform(Stream&&, F &&)->transform<Stream, F>;
+template<class Stream, class F>
+transform_fn(Stream&, F &&)->transform_fn<Stream&, F>;
+template<class Stream, class F>
+transform_fn(Stream&&, F &&)->transform_fn<Stream, F>;
 
 template<class F> class transform_pipe
 {
@@ -119,13 +123,18 @@ template<class F> class transform_pipe
 
     template<class Stream> auto pipe(Stream&& s) const
     {
-        return transform{std::forward<Stream>(s), f_};
+        return transform_fn{std::forward<Stream>(s), f_};
     }
 };
 
-template<class F> auto transform_p(F&& f)
+template<class F> auto transform(F&& f)
 {
     return transform_pipe{std::forward<F>(f)};
+}
+
+template<class Stream, class F> auto transform(Stream&& stream, F&& f)
+{
+    return transform_fn{std::forward<Stream>(stream), std::forward<F>(f)};
 }
 
 } // namespace stream

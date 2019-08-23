@@ -17,15 +17,15 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
-template<class Stream, class Pre> class action
+template<class Stream, class Pre> class action_fn
 {
   public:
     template<class C> struct context
     {
-        C                    child_;
-        action<Stream, Pre>& stream_;
+        C                       child_;
+        action_fn<Stream, Pre>& stream_;
 
-        context(C&& c, action<Stream, Pre>& s)
+        context(C&& c, action_fn<Stream, Pre>& s)
             : child_(std::forward<C>(c)), stream_(s)
         {
         }
@@ -48,7 +48,7 @@ template<class Stream, class Pre> class action
     Pre    pre_;
 
   public:
-    action(Stream&& stream, Pre&& pre)
+    action_fn(Stream&& stream, Pre&& pre)
         : stream_(std::forward<Stream>(stream)), pre_(pre)
     {
     }
@@ -77,8 +77,10 @@ template<class Stream, class Pre> class action
     }
 };
 
-template<class Stream, class Pre> action(Stream&, Pre &&)->action<Stream&, Pre>;
-template<class Stream, class Pre> action(Stream&&, Pre &&)->action<Stream, Pre>;
+template<class Stream, class Pre>
+action_fn(Stream&, Pre &&)->action_fn<Stream&, Pre>;
+template<class Stream, class Pre>
+action_fn(Stream&&, Pre &&)->action_fn<Stream, Pre>;
 
 template<class Pre> class action_pipe
 {
@@ -89,13 +91,18 @@ template<class Pre> class action_pipe
 
     template<class Stream> auto pipe(Stream&& s) const
     {
-        return action{std::forward<Stream>(s), pre_};
+        return action_fn{std::forward<Stream>(s), pre_};
     }
 };
 
 template<class Pre> auto action_p(Pre&& pre)
 {
     return action_pipe{std::forward<Pre>(pre)};
+}
+
+template<class Stream, class Pre> auto action(Stream&& stream, Pre&& pre)
+{
+    return action_fn{std::forward<Stream>(stream), std::forward<Pre>(pre)};
 }
 
 } // namespace stream
