@@ -97,7 +97,7 @@ template<class Pre> class action_pipe
 
 template<class Pre> auto action(Pre&& pre)
 {
-    return action_pipe{std::forward<Pre>(pre)};
+    return action_pipe<Pre>{std::forward<Pre>(pre)};
 }
 
 template<class Stream, class Pre> auto action(Stream&& stream, Pre&& pre)

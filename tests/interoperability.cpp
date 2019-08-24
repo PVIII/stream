@@ -145,3 +145,25 @@ SCENARIO("Actions and transformations.")
         }
     }
 }
+
+SCENARIO("Pipe interoperability.")
+{
+    action_mock closure;
+    write_mock  writer;
+
+    auto s = writer | stream::transform([](auto v) { return v + 1; }) |
+             stream::action(closure);
+
+    WHEN("Single write is called")
+    {
+        REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+        auto sender = s.write(1);
+        REQUIRE_CALL(closure, call());
+
+        WHEN("Synchronous submit is called on the sender.")
+        {
+            REQUIRE_CALL(writer.sender_, submit());
+            sender.submit();
+        }
+    }
+}
