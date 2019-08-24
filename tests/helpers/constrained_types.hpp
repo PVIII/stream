@@ -14,4 +14,13 @@ struct move_only
     move_only(const move_only&) = delete;
 };
 
+struct move_only_reader : move_only
+{
+    struct sender
+    {
+        int submit() { return 0; }
+    };
+    sender read() { return sender{}; }
+};
+
 #endif // TESTS_HELPERS_CONSTRAINED_TYPES_HPP_
