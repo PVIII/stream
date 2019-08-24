@@ -180,5 +180,5 @@ SCENARIO("Pipe operator")
 {
     write_mock writer;
 
-    [[maybe_unused]] auto s = action_p([] {}) | writer;
+    [[maybe_unused]] auto s = action([] {}) | writer;
 }
