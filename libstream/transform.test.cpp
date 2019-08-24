@@ -171,3 +171,23 @@ SCENARIO("Pipe operator")
     [[maybe_unused]] auto s =
         writer | stream::transform([](int v) { return v; });
 }
+
+SCENARIO("Double transform")
+{
+    GIVEN("A write stream.")
+    {
+        write_mock writer;
+
+        auto s = stream::transform(
+            stream::transform(writer, [](auto v) { return v + 1; }),
+            [](auto v) { return v * 2; });
+
+        WHEN("Single value write is called.")
+        {
+            REQUIRE_CALL(writer, write(5)).LR_RETURN(writer.sender_);
+            REQUIRE_CALL(writer.sender_, submit());
+            auto sender = s.write(2);
+            sender.submit();
+        }
+    }
+}

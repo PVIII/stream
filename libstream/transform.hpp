@@ -74,8 +74,8 @@ template<Stream S, class F> class transform_fn
     };
 
   private:
-    S& stream_;
-    F  func_;
+    S stream_;
+    F func_;
 
     template<class C> auto make_read_context(C&& c, transform_fn<S, F>& s)
     {
@@ -83,7 +83,10 @@ template<Stream S, class F> class transform_fn
     }
 
   public:
-    transform_fn(S&& stream, F&& f) : stream_(stream), func_(f) {}
+    transform_fn(S&& stream, F&& f)
+        : stream_(std::forward<S>(stream)), func_(std::forward<F>(f))
+    {
+    }
 
     template<class V> auto write(V&& v)
     {

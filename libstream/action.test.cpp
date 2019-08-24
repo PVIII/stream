@@ -182,3 +182,30 @@ SCENARIO("Pipe operator")
 
     [[maybe_unused]] auto s = writer | action([] {});
 }
+
+SCENARIO("Double action")
+{
+    GIVEN("A write stream.")
+    {
+        write_mock  writer;
+        action_mock closure1;
+        action_mock closure2;
+
+        auto s = action(action(writer, closure1), closure2);
+
+        WHEN("Single value write is called.")
+        {
+            REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+            auto sender = s.write(2);
+
+            WHEN("Synchronous submit is called on the sender.")
+            {
+                trompeloeil::sequence seq;
+                REQUIRE_CALL(closure2, call()).IN_SEQUENCE(seq);
+                REQUIRE_CALL(closure1, call()).IN_SEQUENCE(seq);
+                ALLOW_CALL(writer.sender_, submit()).IN_SEQUENCE(seq);
+                sender.submit();
+            }
+        }
+    }
+}
