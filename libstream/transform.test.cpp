@@ -169,5 +169,5 @@ SCENARIO("Pipe operator")
     write_mock writer;
 
     [[maybe_unused]] auto s =
-        stream::transform([](int v) { return v; }) | writer;
+        writer | stream::transform([](int v) { return v; });
 }

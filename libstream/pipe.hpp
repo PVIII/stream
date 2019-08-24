@@ -13,11 +13,12 @@
 template<typename P, typename S>
 concept bool Pipeable = requires(const P p, S s)
 {
-	{p.pipe(s)};
+    {p.pipe(s)};
 };
 
-template<class Pipe, class Stream> auto operator|(const Pipe& pipe, Stream&& stream)
-requires Pipeable<Pipe, Stream>
+template<class Stream, class Pipe>
+auto operator|(Stream&&    stream,
+               const Pipe& pipe) requires Pipeable<Pipe, Stream>
 {
     return pipe.pipe(std::forward<Stream>(stream));
 }
