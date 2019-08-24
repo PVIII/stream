@@ -7,14 +7,14 @@
 
 #include <libstream/transform.hpp>
 
-#include <catch2/catch.hpp>
-#include <catch2/trompeloeil.hpp>
-
 #include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
+
+#include <catch2/catch.hpp>
+#include <catch2/trompeloeil.hpp>
 
 #include <array>
 #include <experimental/ranges/algorithm>
