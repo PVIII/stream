@@ -36,19 +36,19 @@ SCENARIO("Piping without stream.")
     {
         write_mock writer;
 
-        [[maybe_unused]] auto s = writer | p;
+        auto s = writer | p;
 
-        //        WHEN("Single write is called")
-        //        {
-        //            REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
-        //            auto sender = s.write(1);
-        //            REQUIRE_CALL(closure, call());
-        //
-        //            WHEN("Synchronous submit is called on the sender.")
-        //            {
-        //                REQUIRE_CALL(writer.sender_, submit());
-        //                sender.submit();
-        //            }
-        //        }
+        WHEN("Single write is called")
+        {
+            REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+            auto sender = s.write(1);
+            REQUIRE_CALL(closure, call());
+
+            WHEN("Synchronous submit is called on the sender.")
+            {
+                REQUIRE_CALL(writer.sender_, submit());
+                sender.submit();
+            }
+        }
     }
 }
