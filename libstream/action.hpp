@@ -26,10 +26,10 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
 
     template<class C> struct context
     {
-        C                  child_;
-        action_fn<S, Pre>& stream_;
+        C                        child_;
+        const action_fn<S, Pre>& stream_;
 
-        context(C&& c, action_fn<S, Pre>& s)
+        context(C&& c, const action_fn<S, Pre>& s)
             : child_(std::forward<C>(c)), stream_(s)
         {
         }
@@ -57,26 +57,27 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
     {
     }
 
-    auto read() requires ReadStreamable<S>
+    auto read() const requires ReadStreamable<S>
     {
         return context<decltype(stream_.read())>{stream_.read(), *this};
     }
 
     template<ranges::Range R>
-    auto
-    read(R&& r) requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
+    auto read(R&& r) const
+        requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
     {
         return context<decltype(stream_.read(std::forward<R>(r)))>{
             stream_.read(std::forward<R>(r)), *this};
     }
 
-    template<ranges::InputRange R> auto write(R&& r) requires WriteStreamable<S>
+    template<ranges::InputRange R>
+    auto write(R&& r) const requires WriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<R>(r)))>{
             stream_.write(std::forward<R>(r)), *this};
     }
 
-    template<class V> auto write(V&& v) requires WriteStreamable<S>
+    template<class V> auto write(V&& v) const requires WriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<V>(v)))>{
             stream_.write(std::forward<V>(v)), *this};

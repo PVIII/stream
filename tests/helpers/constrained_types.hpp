@@ -18,7 +18,7 @@ struct move_only_reader
     {
         value_type submit() { return 0; }
     };
-    sender read() { return sender{}; }
+    sender read() const { return sender{}; }
 };
 
 #endif // TESTS_HELPERS_CONSTRAINED_TYPES_HPP_

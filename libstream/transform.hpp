@@ -40,11 +40,13 @@ template<Streamable S, class F> class transform_fn
     };
     template<class C> struct read_context
     {
-        C                      child_;
-        read_token<value_type> token_;
-        transform_fn<S, F>&    stream_;
+        C                         child_;
+        read_token<value_type>    token_;
+        const transform_fn<S, F>& stream_;
 
-        read_context(C&& c, transform_fn<S, F>& s) : child_(c), stream_(s) {}
+        read_context(C&& c, const transform_fn<S, F>& s) : child_(c), stream_(s)
+        {
+        }
 
         void handler(error_code ec, value_type v)
         {
@@ -79,7 +81,8 @@ template<Streamable S, class F> class transform_fn
     S stream_;
     F func_;
 
-    template<class C> auto make_read_context(C&& c, transform_fn<S, F>& s)
+    template<class C>
+    auto make_read_context(C&& c, const transform_fn<S, F>& s) const
     {
         return read_context<C>{std::forward<C>(c), s};
     }
@@ -90,27 +93,28 @@ template<Streamable S, class F> class transform_fn
     {
     }
 
-    template<class V> auto write(V&& v) requires WriteStreamable<S>
+    template<class V> auto write(V&& v) const requires WriteStreamable<S>
     {
         return write_context<decltype(stream_.write(func_(
             std::forward<V>(v))))>{stream_.write(func_(std::forward<V>(v)))};
     }
 
-    template<ranges::InputRange R> auto write(R&& r) requires WriteStreamable<S>
+    template<ranges::InputRange R>
+    auto write(R&& r) const requires WriteStreamable<S>
     {
         return range_context<decltype(
             stream_.write(ranges::view::transform(std::forward<R>(r), func_)))>{
             stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
-    auto read() requires ReadStreamable<S>
+    auto read() const requires ReadStreamable<S>
     {
         return make_read_context(stream_.read(), *this);
     }
 
     template<ranges::Range R>
-    auto
-    read(R&& r) requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
+    auto read(R&& r) const
+        requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
     {
         return range_context<decltype(stream_.read(output_view::transform(
             r, func_)))>{stream_.read(output_view::transform(r, func_))};

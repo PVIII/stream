@@ -172,7 +172,36 @@ SCENARIO("Simple actions.")
     }
 }
 
-SCENARIO("R-value writer and callback")
+SCENARIO("Const action adaptor.")
+{
+    GIVEN("Writer")
+    {
+        write_mock writer;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s = action(writer, [] {});
+        }
+        THEN("A constant piped adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s = writer | action([] {});
+        }
+    }
+
+    GIVEN("Reader")
+    {
+        read_mock reader;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s = action(reader, [] {});
+        }
+        THEN("A constant piped adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s = reader | action([] {});
+        }
+    }
+}
+
+SCENARIO("R-value writer and callback.")
 {
     [[maybe_unused]] auto s = action(move_only_reader{}, [] {});
 }

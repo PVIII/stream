@@ -161,6 +161,29 @@ SCENARIO("Transformations with single values.")
     }
 }
 
+SCENARIO("Const transform adaptor.")
+{
+    GIVEN("Writer")
+    {
+        write_mock writer;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s =
+                stream::transform(writer, [](auto v) { return v + 1; });
+        }
+    }
+
+    GIVEN("Reader")
+    {
+        read_mock reader;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s =
+                stream::transform(reader, [](auto v) { return v + 1; });
+        }
+    }
+}
+
 SCENARIO("R-value writer and callback")
 {
     [[maybe_unused]] auto s =
