@@ -173,7 +173,7 @@ SCENARIO("Simple actions.")
 
 SCENARIO("R-value writer and callback")
 {
-    [[maybe_unused]] auto s = action(move_only{}, [] {});
+    [[maybe_unused]] auto s = action(move_only_reader{}, [] {});
 }
 
 SCENARIO("Pipe operator")

@@ -18,7 +18,7 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
-template<Stream S, class F> class transform_fn
+template<Streamable S, class F> class transform_fn
 {
   public:
     template<class C> struct range_context
@@ -88,33 +88,35 @@ template<Stream S, class F> class transform_fn
     {
     }
 
-    template<class V> auto write(V&& v)
+    template<class V> auto write(V&& v) requires WriteStreamable<S>
     {
         return write_context<decltype(stream_.write(std::forward<V>(
             func_(v))))>{stream_.write(std::forward<V>(func_(v)))};
     }
 
-    template<ranges::Range R> auto write(R&& r)
+    template<ranges::Range R> auto write(R&& r) requires WriteStreamable<S>
     {
         return range_context<decltype(
             stream_.write(ranges::view::transform(std::forward<R>(r), func_)))>{
             stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
-    auto read() requires ReadStream<S>
+    auto read() requires ReadStreamable<S>
     {
         return make_read_context(stream_.read(), *this);
     }
 
-    auto read(ranges::Range&& r)
+    auto read(ranges::Range&& r) requires ReadStreamable<S>
     {
         return range_context<decltype(stream_.read(output_view::transform(
             r, func_)))>{stream_.read(output_view::transform(r, func_))};
     }
 };
 
-template<class S, class F> transform_fn(S&, F &&)->transform_fn<Stream&, F>;
-template<class S, class F> transform_fn(S&&, F &&)->transform_fn<Stream, F>;
+template<Streamable S, class F>
+transform_fn(S&, F &&)->transform_fn<Streamable&, F>;
+template<Streamable S, class F>
+transform_fn(S&&, F &&)->transform_fn<Streamable, F>;
 
 template<class F> class transform_pipe
 {
@@ -123,18 +125,18 @@ template<class F> class transform_pipe
   public:
     transform_pipe(F&& f) : f_(f) {}
 
-    template<class S> auto pipe(S&& s) const
+    template<Streamable S> Streamable pipe(S&& s) const
     {
         return transform_fn<S, F>{std::forward<S>(s), F(f_)};
     }
 };
 
-template<class F> auto transform(F&& f)
+template<class F> Pipeable transform(F&& f)
 {
     return transform_pipe{std::forward<F>(f)};
 }
 
-template<class S, class F> auto transform(S&& stream, F&& f)
+template<Streamable S, class F> Streamable transform(S&& stream, F&& f)
 {
     return transform_fn<S, F>{std::forward<S>(stream), std::forward<F>(f)};
 }

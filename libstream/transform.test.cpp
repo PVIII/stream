@@ -161,7 +161,8 @@ SCENARIO("Transformations with single values.")
 
 SCENARIO("R-value writer and callback")
 {
-    [[maybe_unused]] auto s = stream::transform(move_only_reader{}, [] {});
+    [[maybe_unused]] auto s =
+        stream::transform(move_only_reader{}, [](int v) { return v; });
 }
 
 SCENARIO("Pipe operator")

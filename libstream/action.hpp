@@ -17,15 +17,15 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
-template<class Stream, class Pre> class action_fn
+template<Streamable S, ranges::RegularInvocable Pre> class action_fn
 {
   public:
     template<class C> struct context
     {
-        C                       child_;
-        action_fn<Stream, Pre>& stream_;
+        C                  child_;
+        action_fn<S, Pre>& stream_;
 
-        context(C&& c, action_fn<Stream, Pre>& s)
+        context(C&& c, action_fn<S, Pre>& s)
             : child_(std::forward<C>(c)), stream_(s)
         {
         }
@@ -44,65 +44,66 @@ template<class Stream, class Pre> class action_fn
     };
 
   private:
-    Stream stream_;
-    Pre    pre_;
+    S   stream_;
+    Pre pre_;
 
   public:
-    action_fn(Stream&& stream, Pre&& pre)
-        : stream_(std::forward<Stream>(stream)), pre_(pre)
+    action_fn(S&& stream, Pre&& pre)
+        : stream_(std::forward<S>(stream)), pre_(pre)
     {
     }
 
-    auto read()
+    auto read() requires ReadStreamable<S>
     {
         return context<decltype(stream_.read())>{stream_.read(), *this};
     }
 
-    template<ranges::Range R> auto read(R&& r)
+    template<ranges::Range R> auto read(R&& r) requires ReadStreamable<S>
     {
         return context<decltype(stream_.read(std::forward<R>(r)))>{
             stream_.read(std::forward<R>(r)), *this};
     }
 
-    template<ranges::Range R> auto write(R&& r)
+    template<ranges::Range R> auto write(R&& r) requires WriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<R>(r)))>{
             stream_.write(std::forward<R>(r)), *this};
     }
 
-    template<class V> auto write(V&& v)
+    template<class V> auto write(V&& v) requires WriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<V>(v)))>{
             stream_.write(std::forward<V>(v)), *this};
     }
 };
 
-template<class Stream, class Pre>
-action_fn(Stream&, Pre &&)->action_fn<Stream&, Pre>;
-template<class Stream, class Pre>
-action_fn(Stream&&, Pre &&)->action_fn<Stream, Pre>;
+template<Streamable S, ranges::RegularInvocable Pre>
+action_fn(S&, Pre &&)->action_fn<S&, Pre>;
+template<Streamable S, ranges::RegularInvocable Pre>
+action_fn(S&&, Pre &&)->action_fn<S, Pre>;
 
-template<class Pre> class action_pipe
+template<ranges::RegularInvocable Pre> class action_pipe
 {
     Pre pre_;
 
   public:
     action_pipe(Pre&& pre) : pre_(pre) {}
 
-    template<class Stream> auto pipe(Stream&& s) const
+    template<Streamable S> Streamable pipe(S&& s) const
     {
-        return action_fn{std::forward<Stream>(s), pre_};
+        return action_fn{std::forward<S>(s), pre_};
     }
 };
 
-template<class Pre> auto action(Pre&& pre)
+template<ranges::RegularInvocable Pre> Pipeable action(Pre&& pre)
 {
     return action_pipe<Pre>{std::forward<Pre>(pre)};
 }
 
-template<class Stream, class Pre> auto action(Stream&& stream, Pre&& pre)
+template<Streamable S, ranges::RegularInvocable Pre>
+Streamable action(S&& stream, Pre&& pre)
 {
-    return action_fn{std::forward<Stream>(stream), std::forward<Pre>(pre)};
+    return action_fn{std::forward<S>(stream), std::forward<Pre>(pre)};
 }
 
 } // namespace stream

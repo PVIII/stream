@@ -10,32 +10,33 @@
 
 #include <utility>
 
-template<class S> concept bool WriteStream = requires(S s)
+template<class S> concept bool WriteStreamable = requires(S s)
 {
     {s.write(0).submit()};
 };
 
-template<class S> concept bool ReadStream = requires(S s)
+template<class S> concept bool ReadStreamable = requires(S s)
 {
     {s.read().submit()};
 };
 
-template<class S> concept bool Stream = ReadStream<S> || WriteStream<S>;
+template<class S>
+concept bool Streamable = ReadStreamable<S> || WriteStreamable<S>;
 
-template<class P> concept bool Pipe = requires(const P p) { {P::pipe}; };
+template<class P> concept bool Pipeable = requires(P p) { {P::pipe}; };
 
-template<Pipe P, Stream S> concept bool Pipeable = requires(const P p, S s)
+template<Streamable S, Pipeable P> concept bool PipeableTo = requires(S s, P p)
 {
     {p.pipe(s)};
 };
 
-template<Stream S, Pipe P>
-auto operator|(S&& stream, const P& pipe) requires Pipeable<P, S>
+template<Streamable S, Pipeable P>
+Streamable operator|(S&& stream, const P& pipe) requires PipeableTo<S, P>
 {
     return pipe.pipe(std::forward<S>(stream));
 }
 
-template<Pipe P1, Pipe P2> class pure_pipe
+template<Pipeable P1, Pipeable P2> class pure_pipe
 {
     P1 p1_;
     P2 p2_;
@@ -43,13 +44,13 @@ template<Pipe P1, Pipe P2> class pure_pipe
   public:
     pure_pipe(P1&& p1, P2&& p2) : p1_(p1), p2_(p2) {}
 
-    template<Stream S> auto pipe(S&& s) const
+    template<Streamable S> Streamable pipe(S&& s) const
     {
         return p2_.pipe(p1_.pipe(std::forward<S>(s)));
     }
 };
 
-template<Pipe P1, Pipe P2> Pipe operator|(P1&& p1, P2&& p2)
+template<Pipeable P1, Pipeable P2> Pipeable operator|(P1&& p1, P2&& p2)
 {
     return pure_pipe{std::forward<P1>(p1), std::forward<P2>(p2)};
 }
