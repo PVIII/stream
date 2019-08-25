@@ -64,7 +64,7 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
             stream_.read(std::forward<R>(r)), *this};
     }
 
-    template<ranges::Range R> auto write(R&& r) requires WriteStreamable<S>
+    template<ranges::InputRange R> auto write(R&& r) requires WriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<R>(r)))>{
             stream_.write(std::forward<R>(r)), *this};

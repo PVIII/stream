@@ -35,18 +35,33 @@ struct write_mock
         MAKE_MOCK0(submit, void());
         MAKE_MOCK1(submit, void(completion_token&&));
     };
-    sender       sender_;
-    range_sender range_sender_;
+    bool         check_range_type_ = false;
+    sender       sender_{};
+    range_sender range_sender_{};
 
     MAKE_MOCK1(write, sender&(int));
-    range_sender& write(ranges::Range&& r)
+
+    MAKE_MOCK0(contiguous_write_, void());
+    MAKE_MOCK0(random_access_write_, void());
+    MAKE_MOCK0(bidirectional_write_, void());
+    MAKE_MOCK1(write_, void(std::vector<int>));
+    template<ranges::InputRange R> range_sender& write(R&& r)
     {
-        std::vector<int> v;
-        ranges::copy(r, ranges::back_inserter(v));
-        write_(v);
+        if(check_range_type_)
+        {
+            if constexpr(ranges::ContiguousRange<R>) { contiguous_write_(); }
+            else if constexpr(ranges::RandomAccessRange<R>)
+            {
+                random_access_write_();
+            }
+            else if constexpr(ranges::BidirectionalRange<R>)
+            {
+                bidirectional_write_();
+            }
+        }
+        write_(std::vector<int>{ranges::begin(r), ranges::end(r)});
         return range_sender_;
     }
-    MAKE_MOCK1(write_, void(std::vector<int>));
 };
 
 } // namespace stream

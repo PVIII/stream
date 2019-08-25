@@ -94,7 +94,7 @@ template<Streamable S, class F> class transform_fn
             func_(v))))>{stream_.write(std::forward<V>(func_(v)))};
     }
 
-    template<ranges::Range R> auto write(R&& r) requires WriteStreamable<S>
+    template<ranges::InputRange R> auto write(R&& r) requires WriteStreamable<S>
     {
         return range_context<decltype(
             stream_.write(ranges::view::transform(std::forward<R>(r), func_)))>{

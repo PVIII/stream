@@ -17,8 +17,10 @@
 #include <catch2/trompeloeil.hpp>
 
 #include <array>
+#include <deque>
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
+#include <list>
 
 using namespace stream;
 using namespace std;
@@ -189,6 +191,34 @@ SCENARIO("Double transform")
             REQUIRE_CALL(writer.sender_, submit());
             auto sender = s.write(2);
             sender.submit();
+        }
+    }
+}
+
+SCENARIO("Random access range is preserved.")
+{
+    GIVEN("A write stream.")
+    {
+        write_mock writer{true};
+        ALLOW_CALL(writer, write_(ANY(vector<int>)));
+
+        WHEN("It is transformed.")
+        {
+            auto s = stream::transform(writer, [](auto v) { return v + 1; });
+
+            WHEN("A bidirectional range is written.")
+            {
+                REQUIRE_CALL(writer, bidirectional_write_());
+                std::list<int> l;
+                s.write(l);
+            }
+
+            WHEN("A random-access range is written.")
+            {
+                REQUIRE_CALL(writer, random_access_write_());
+                std::deque<int> v;
+                s.write(v);
+            }
         }
     }
 }

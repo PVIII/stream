@@ -19,6 +19,7 @@
 #include <array>
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
+#include <list>
 
 using namespace stream;
 using namespace std;
@@ -206,6 +207,31 @@ SCENARIO("Double action")
                 ALLOW_CALL(writer.sender_, submit()).IN_SEQUENCE(seq);
                 sender.submit();
             }
+        }
+    }
+}
+
+SCENARIO("Contiguous range is preserved.")
+{
+    GIVEN("A write stream.")
+    {
+        write_mock writer{true};
+        ALLOW_CALL(writer, write_(ANY(vector<int>)));
+
+        auto s = stream::action(writer, [] {});
+
+        WHEN("With a BidirectionalRange.")
+        {
+            REQUIRE_CALL(writer, bidirectional_write_());
+            std::list<int> l;
+            s.write(l);
+        }
+
+        WHEN("With a ContiguousRange.")
+        {
+            REQUIRE_CALL(writer, contiguous_write_());
+            std::vector<int> v;
+            s.write(v);
         }
     }
 }
