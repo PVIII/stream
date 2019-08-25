@@ -24,10 +24,12 @@ namespace stream
 {
 struct read_mock
 {
+    using value_type = int;
+
     struct sender
     {
-        MAKE_MOCK0(submit, int());
-        MAKE_MOCK1(submit, void(read_token<int>&&));
+        MAKE_MOCK0(submit, value_type());
+        MAKE_MOCK1(submit, void(read_token<value_type>&&));
     };
     struct range_sender
     {
@@ -40,12 +42,12 @@ struct read_mock
     MAKE_MOCK0(read, sender&());
     range_sender& read(ranges::Range&& r)
     {
-        std::vector<int> v;
+        std::vector<value_type> v;
         read_(v);
         ranges::copy(v, ranges::begin(r));
         return range_sender_;
     }
-    MAKE_MOCK1(read_, void(std::vector<int>& r));
+    MAKE_MOCK1(read_, void(std::vector<value_type>& r));
 };
 
 } // namespace stream
