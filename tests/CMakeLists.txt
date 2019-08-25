@@ -31,7 +31,7 @@ target_compile_options(view_test PRIVATE -fsanitize=address -fsanitize=leak -fsa
 target_link_options(view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 add_test(NAME view_test COMMAND view_test)
 
-add_executable(interoperability_test interoperability.cpp)
+add_executable(interoperability_test interoperability.test.cpp)
 target_link_libraries(interoperability_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
 target_compile_options(interoperability_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
 target_compile_options(interoperability_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
