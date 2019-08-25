@@ -8,21 +8,12 @@
 #ifndef LIBSTREAM_PIPE_HPP_
 #define LIBSTREAM_PIPE_HPP_
 
+#include <libstream/stream.hpp>
+
 #include <utility>
 
-template<class S> concept bool WriteStreamable = requires(S s)
+namespace stream
 {
-    {s.write(0).submit()};
-};
-
-template<class S> concept bool ReadStreamable = requires(S s)
-{
-    {s.read().submit()};
-};
-
-template<class S>
-concept bool Streamable = ReadStreamable<S> || WriteStreamable<S>;
-
 template<class P> concept bool Pipeable = requires(P p) { {P::pipe}; };
 
 template<Streamable S, Pipeable P> concept bool PipeableTo = requires(S s, P p)
@@ -54,5 +45,7 @@ template<Pipeable P1, Pipeable P2> Pipeable operator|(P1&& p1, P2&& p2)
 {
     return pure_pipe{std::forward<P1>(p1), std::forward<P2>(p2)};
 }
+
+} // namespace stream
 
 #endif // LIBSTREAM_PIPE_HPP_
