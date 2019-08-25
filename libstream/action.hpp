@@ -62,7 +62,9 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
         return context<decltype(stream_.read())>{stream_.read(), *this};
     }
 
-    template<ranges::Range R> auto read(R&& r) requires ReadStreamable<S>
+    template<ranges::Range R>
+    auto
+    read(R&& r) requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
     {
         return context<decltype(stream_.read(std::forward<R>(r)))>{
             stream_.read(std::forward<R>(r)), *this};

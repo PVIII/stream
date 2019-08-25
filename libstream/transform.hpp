@@ -108,7 +108,9 @@ template<Streamable S, class F> class transform_fn
         return make_read_context(stream_.read(), *this);
     }
 
-    auto read(ranges::Range&& r) requires ReadStreamable<S>
+    template<ranges::Range R>
+    auto
+    read(R&& r) requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
     {
         return range_context<decltype(stream_.read(output_view::transform(
             r, func_)))>{stream_.read(output_view::transform(r, func_))};
