@@ -29,26 +29,42 @@ SCENARIO("Piping without stream.")
 {
     action_mock closure;
 
-    auto p = stream::transform([](auto v) { return v + 1; }) |
-             stream::action(closure);
-
-    GIVEN("A write stream.")
+    GIVEN("A normal pure pipe.")
     {
-        write_mock writer;
+        auto p = stream::transform([](auto v) { return v + 1; }) |
+                 stream::action(closure);
 
-        auto s = writer | p;
-
-        WHEN("Single write is called")
+        GIVEN("A write stream.")
         {
-            REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
-            auto sender = s.write(1);
-            REQUIRE_CALL(closure, call());
+            write_mock writer;
 
-            WHEN("Synchronous submit is called on the sender.")
+            auto s = writer | p;
+
+            WHEN("Single write is called")
             {
-                REQUIRE_CALL(writer.sender_, submit());
-                sender.submit();
+                REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+                auto sender = s.write(1);
+                REQUIRE_CALL(closure, call());
+
+                WHEN("Synchronous submit is called on the sender.")
+                {
+                    REQUIRE_CALL(writer.sender_, submit());
+                    sender.submit();
+                }
             }
+        }
+    }
+
+    GIVEN("A const pure pipe.")
+    {
+        const auto p = stream::transform([](auto v) { return v + 1; }) |
+                       stream::action(closure);
+
+        THEN("It can be applied to a stream.")
+        {
+            write_mock writer;
+
+            [[maybe_unused]] auto s = writer | p;
         }
     }
 }
