@@ -10,13 +10,11 @@
 
 struct move_only_reader
 {
-    using value_type = int;
-
     move_only_reader(move_only_reader&&)      = default;
     move_only_reader(const move_only_reader&) = delete;
     struct sender
     {
-        value_type submit() { return 0; }
+        int submit() { return 0; }
     };
     sender read() const { return sender{}; }
 };

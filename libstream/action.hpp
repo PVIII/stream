@@ -13,8 +13,6 @@
 
 #include <experimental/ranges/range>
 
-#include <type_traits>
-
 namespace ranges = std::experimental::ranges;
 
 namespace stream
@@ -22,8 +20,6 @@ namespace stream
 template<Streamable S, ranges::RegularInvocable Pre> class action_fn
 {
   public:
-    using value_type = typename std::remove_reference_t<S>::value_type;
-
     template<class C> struct context
     {
         C                        child_;
@@ -62,9 +58,7 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
         return context<decltype(stream_.read())>{stream_.read(), *this};
     }
 
-    template<ranges::Range R>
-    auto read(R&& r) const
-        requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
+    template<ranges::Range R> auto read(R&& r) const requires ReadStreamable<S>
     {
         return context<decltype(stream_.read(std::forward<R>(r)))>{
             stream_.read(std::forward<R>(r)), *this};

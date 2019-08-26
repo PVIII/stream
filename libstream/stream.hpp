@@ -8,19 +8,17 @@
 #ifndef STREAM_HPP_
 #define STREAM_HPP_
 
-#include <type_traits>
-
 namespace stream
 {
 
-template<class S> concept bool WriteStreamable = requires(S s, typename std::remove_reference_t<S>::value_type v)
+template<class S> concept bool WriteStreamable = requires(S s)
 {
-    {s.write(v).submit()};
+    {s.write(0).submit()};
 };
 
 template<class S> concept bool ReadStreamable = requires(S s)
 {
-    {s.read().submit()} -> typename std::remove_reference_t<S>::value_type;
+    {s.read().submit()};
 };
 
 template<class S>

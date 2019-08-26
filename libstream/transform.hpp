@@ -14,8 +14,6 @@
 
 #include <experimental/ranges/range>
 
-#include <type_traits>
-
 namespace ranges = std::experimental::ranges;
 
 namespace stream
@@ -23,8 +21,6 @@ namespace stream
 template<Streamable S, class F> class transform_fn
 {
   public:
-    using value_type = typename std::remove_reference_t<S>::value_type;
-
     template<class C> struct range_context
     {
         C child_;
@@ -40,6 +36,8 @@ template<Streamable S, class F> class transform_fn
     };
     template<class C> struct read_context
     {
+        using value_type = decltype(std::declval<C>().submit());
+
         C                         child_;
         read_token<value_type>    token_;
         const transform_fn<S, F>& stream_;
@@ -112,9 +110,7 @@ template<Streamable S, class F> class transform_fn
         return make_read_context(stream_.read(), *this);
     }
 
-    template<ranges::Range R>
-    auto read(R&& r) const
-        requires ReadStreamable<S>&& ranges::OutputRange<R, value_type>
+    auto read(ranges::Range&& r) const requires ReadStreamable<S>
     {
         return range_context<decltype(stream_.read(output_view::transform(
             r, func_)))>{stream_.read(output_view::transform(r, func_))};

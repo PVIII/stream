@@ -25,8 +25,6 @@ namespace stream
 {
 struct write_mock
 {
-    using value_type = int;
-
     struct sender
     {
         MAKE_MOCK0(submit, void());
@@ -41,12 +39,12 @@ struct write_mock
     sender       sender_{};
     range_sender range_sender_{};
 
-    MAKE_MOCK1(write, sender&(value_type));
+    MAKE_MOCK1(write, sender&(int));
 
     MAKE_MOCK0(contiguous_write_, void());
     MAKE_MOCK0(random_access_write_, void());
     MAKE_MOCK0(bidirectional_write_, void());
-    MAKE_MOCK1(write_, void(std::vector<value_type>));
+    MAKE_MOCK1(write_, void(std::vector<int>));
     template<ranges::InputRange R> range_sender& write(R&& r)
     {
         if(check_range_type_)
@@ -61,7 +59,7 @@ struct write_mock
                 bidirectional_write_();
             }
         }
-        write_(std::vector<value_type>{ranges::begin(r), ranges::end(r)});
+        write_(std::vector<int>{ranges::begin(r), ranges::end(r)});
         return range_sender_;
     }
 };
