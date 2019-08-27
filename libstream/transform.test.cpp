@@ -17,10 +17,12 @@
 #include <catch2/trompeloeil.hpp>
 
 #include <array>
+#include <complex>
 #include <deque>
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/range>
 #include <list>
+#include <utility>
 
 using namespace stream;
 using namespace std;
@@ -157,6 +159,39 @@ SCENARIO("Transformations with single values.")
 
                 REQUIRE_THAT(a, Equals(array{2, 3}));
             }
+        }
+    }
+}
+
+SCENARIO("Change the value type.")
+{
+    GIVEN("A write stream that adds a pair.")
+    {
+        write_mock writer;
+        auto       s = stream::transform(writer,
+                                   [](auto v) { return v.first + v.second; });
+
+        WHEN("Single write is called")
+        {
+            REQUIRE_CALL(writer, write(3)).LR_RETURN(writer.sender_);
+            [[maybe_unused]] auto sender = s.write(pair{1, 2});
+        }
+    }
+
+    GIVEN("A read stream that converts an integer to a complex number.")
+    {
+        read_mock reader;
+        auto      s = stream::transform(reader, [](auto v) {
+            return std::complex{v, 3};
+        });
+        REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
+        auto sender = s.read();
+
+        WHEN("Synchronous submit is called on the sender.")
+        {
+            REQUIRE_CALL(reader.sender_, submit()).RETURN(2);
+            auto v = sender.submit();
+            REQUIRE(v == std::complex{2, 3});
         }
     }
 }
