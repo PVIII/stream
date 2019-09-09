@@ -14,7 +14,10 @@
 
 namespace stream
 {
-template<class P> concept bool Pipeable = requires(P p) { {P::pipe}; };
+template<class P> concept bool Pipeable = requires()
+{
+    {std::remove_reference_t<P>::pipe};
+};
 
 template<Streamable S, Pipeable P> concept bool PipeableTo = requires(S s, P p)
 {
@@ -39,11 +42,16 @@ template<Pipeable P1, Pipeable P2> class pure_pipe
     {
         return p2_.pipe(p1_.pipe(std::forward<S>(s)));
     }
+
+    template<Pipeable P> Pipeable pipe(P&& p) const
+    {
+        return pure_pipe{*this, std::forward<P>(p)};
+    }
 };
 
 template<Pipeable P1, Pipeable P2> Pipeable operator|(P1&& p1, P2&& p2)
 {
-    return pure_pipe{std::forward<P1>(p1), std::forward<P2>(p2)};
+    return pure_pipe<P1, P2>{std::forward<P1>(p1), std::forward<P2>(p2)};
 }
 
 } // namespace stream

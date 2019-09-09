@@ -29,42 +29,106 @@ SCENARIO("Piping without stream.")
 {
     action_mock closure;
 
-    GIVEN("A normal pure pipe.")
+    THEN("A pure pipe can be created.")
     {
-        auto p = stream::transform([](auto v) { return v + 1; }) |
-                 stream::action(closure);
+        auto p1 =
+            stream::transform([](auto v) { return v + 1; }) | action(closure);
 
         GIVEN("A write stream.")
         {
             write_mock writer;
 
-            auto s = writer | p;
-
-            WHEN("Single write is called")
+            THEN("The pure pipe can be applied.")
             {
-                REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
-                auto sender = s.write(1);
-                REQUIRE_CALL(closure, call());
+                auto s = writer | p1;
 
-                WHEN("Synchronous submit is called on the sender.")
+                WHEN("Single write is called")
                 {
-                    REQUIRE_CALL(writer.sender_, submit());
-                    sender.submit();
+                    REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+                    auto sender = s.write(1);
+                    REQUIRE_CALL(closure, call());
+
+                    WHEN("Synchronous submit is called on the sender.")
+                    {
+                        REQUIRE_CALL(writer.sender_, submit());
+                        sender.submit();
+                    }
+                }
+            }
+        }
+        GIVEN("Another pure pipe.")
+        {
+            const auto p2 = stream::transform([](auto v) { return v * 2; }) |
+                            stream::action(closure);
+
+            THEN("They can be combined.")
+            {
+                auto p = p1 | p2;
+
+                GIVEN("A write stream.")
+                {
+                    write_mock writer;
+
+                    THEN("The combined pipe can be applied.")
+                    {
+                        auto s = writer | p;
+
+                        WHEN("Single write is called")
+                        {
+                            REQUIRE_CALL(writer, write(3))
+                                .LR_RETURN(writer.sender_);
+                            auto sender = s.write(1);
+                            REQUIRE_CALL(closure, call()).TIMES(2);
+
+                            WHEN("Synchronous submit is called on the sender.")
+                            {
+                                REQUIRE_CALL(writer.sender_, submit());
+                                sender.submit();
+                            }
+                        }
+                    }
+                }
+            }
+
+            GIVEN("A write stream.")
+            {
+                write_mock writer;
+
+                THEN("They can be applied successively.")
+                {
+                    auto s = writer | p1 | p2;
+
+                    WHEN("Single write is called")
+                    {
+                        REQUIRE_CALL(writer, write(3))
+                            .LR_RETURN(writer.sender_);
+                        auto sender = s.write(1);
+                        REQUIRE_CALL(closure, call()).TIMES(2);
+
+                        WHEN("Synchronous submit is called on the sender.")
+                        {
+                            REQUIRE_CALL(writer.sender_, submit());
+                            sender.submit();
+                        }
+                    }
                 }
             }
         }
     }
 
-    GIVEN("A const pure pipe.")
+    THEN("A const pure pipe can be created.")
     {
         const auto p = stream::transform([](auto v) { return v + 1; }) |
                        stream::action(closure);
 
-        THEN("It can be applied to a stream.")
+        GIVEN("A write stream.")
         {
             write_mock writer;
 
-            [[maybe_unused]] auto s = writer | p;
+            THEN("The const pure pipe can be applied.")
+            {
+                [[maybe_unused]] auto s = writer | p;
+            }
         }
     }
 }
