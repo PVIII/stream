@@ -247,7 +247,7 @@ SCENARIO("Contiguous range is preserved.")
         write_mock writer{true};
         ALLOW_CALL(writer, write_(ANY(vector<int>)));
 
-        auto s = stream::action(writer, [] {});
+        auto s = action(writer, [] {});
 
         WHEN("With a BidirectionalRange.")
         {
