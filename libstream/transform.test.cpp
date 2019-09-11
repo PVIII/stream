@@ -160,12 +160,12 @@ SCENARIO("Transformations with single values.")
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1, 2});
             std::array<int, 2> a;
             auto               sender = s.read(a);
+            REQUIRE_THAT(a, Equals(array{2, 3}));
 
             WHEN("Synchronous submit is called on the sender")
             {
                 ALLOW_CALL(reader.range_sender_, submit());
                 sender.submit();
-                REQUIRE_THAT(a, Equals(array{2, 3}));
             }
 
             WHEN("Asynchronous submit is called on the sender.")
@@ -181,7 +181,6 @@ SCENARIO("Transformations with single values.")
                     REQUIRE_CALL(callback_mock, call(_, _))
                         .WITH(_1 == 0 && _2 == 2);
                     t(0, 2);
-                    REQUIRE_THAT(a, Equals(array{2, 3}));
                 }
             }
         }
