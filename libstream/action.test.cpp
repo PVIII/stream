@@ -54,12 +54,18 @@ SCENARIO("Simple actions.")
 
             WHEN("Asynchronous submit is called on the sender.")
             {
+                write_token t;
                 ALLOW_CALL(writer.sender_, submit(ANY(write_token)))
-                    .SIDE_EFFECT(_1(0););
+                    .LR_SIDE_EFFECT(t = _1;);
                 write_callback_mock callback_mock;
-                REQUIRE_CALL(callback_mock, call(_)).WITH(_1 == 0);
 
                 sender.submit(callback_mock);
+
+                AND_WHEN("The callback is invoked.")
+                {
+                    REQUIRE_CALL(callback_mock, call(_)).WITH(_1 == 0);
+                    t(0);
+                }
             }
         }
 
@@ -77,13 +83,19 @@ SCENARIO("Simple actions.")
 
             WHEN("Asynchronous submit is called.")
             {
+                completion_token t;
                 ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
-                    .SIDE_EFFECT(_1(0, 2));
+                    .LR_SIDE_EFFECT(t = _1);
                 range_callback_mock callback_mock;
-                REQUIRE_CALL(callback_mock, call(_, _))
-                    .WITH(_1 == 0 && _2 == 2);
 
                 sender.submit(callback_mock);
+
+                AND_WHEN("The callback is invoked.")
+                {
+                    REQUIRE_CALL(callback_mock, call(_, _))
+                        .WITH(_1 == 0 && _2 == 2);
+                    t(0, 2);
+                }
             }
         }
 
@@ -101,13 +113,19 @@ SCENARIO("Simple actions.")
 
             WHEN("Asynchronous submit is called.")
             {
+                completion_token t;
                 ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
-                    .SIDE_EFFECT(_1(0, 3));
+                    .LR_SIDE_EFFECT(t = _1);
                 range_callback_mock callback_mock;
-                REQUIRE_CALL(callback_mock, call(_, _))
-                    .WITH(_1 == 0 && _2 == 3);
 
                 sender.submit(callback_mock);
+
+                AND_WHEN("The callback is invoked.")
+                {
+                    REQUIRE_CALL(callback_mock, call(_, _))
+                        .WITH(_1 == 0 && _2 == 3);
+                    t(0, 3);
+                }
             }
         }
     }
@@ -133,13 +151,19 @@ SCENARIO("Simple actions.")
 
             WHEN("Asynchronous submit is called on the sender.")
             {
-                ALLOW_CALL(reader.sender_, submit(ANY(read_token<char>)))
-                    .SIDE_EFFECT(_1(0, 1););
+                read_token<int> t;
+                ALLOW_CALL(reader.sender_, submit(ANY(read_token<int>)))
+                    .LR_SIDE_EFFECT(t = _1);
                 read_callback_mock callback_mock;
-                REQUIRE_CALL(callback_mock, call(_, _))
-                    .WITH(_1 == 0 && _2 == 1);
 
                 sender.submit(callback_mock);
+
+                AND_WHEN("The callback is invoked.")
+                {
+                    REQUIRE_CALL(callback_mock, call(_, _))
+                        .WITH(_1 == 0 && _2 == 1);
+                    t(0, 1);
+                }
             }
         }
 
@@ -159,14 +183,19 @@ SCENARIO("Simple actions.")
 
             WHEN("Asynchronous submit is called on the sender.")
             {
+                completion_token t;
                 ALLOW_CALL(reader.range_sender_, submit(ANY(completion_token)))
-                    .SIDE_EFFECT(_1(0, 2););
+                    .LR_SIDE_EFFECT(t = _1);
                 read_callback_mock callback_mock;
-                REQUIRE_CALL(callback_mock, call(_, _))
-                    .WITH(_1 == 0 && _2 == 2);
                 sender.submit(callback_mock);
 
-                REQUIRE_THAT(a, Equals(array{2, 3}));
+                AND_WHEN("The callback is invoked.")
+                {
+                    REQUIRE_CALL(callback_mock, call(_, _))
+                        .WITH(_1 == 0 && _2 == 2);
+                    t(0, 2);
+                    REQUIRE_THAT(a, Equals(array{2, 3}));
+                }
             }
         }
     }
