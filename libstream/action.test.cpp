@@ -9,6 +9,7 @@
 
 #include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
+#include <tests/helpers/submit_tester.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/writestream.hpp>
@@ -46,27 +47,8 @@ SCENARIO("Simple actions.")
             auto sender = s.write(2);
             REQUIRE_CALL(closure, call());
 
-            WHEN("Synchronous submit is called on the sender.")
-            {
-                ALLOW_CALL(writer.sender_, submit());
-                sender.submit();
-            }
-
-            WHEN("Asynchronous submit is called on the sender.")
-            {
-                write_token t;
-                ALLOW_CALL(writer.sender_, submit(ANY(write_token)))
-                    .LR_SIDE_EFFECT(t = _1;);
-                write_callback_mock callback_mock;
-
-                sender.submit(callback_mock);
-
-                AND_WHEN("The callback is invoked.")
-                {
-                    REQUIRE_CALL(callback_mock, call(_)).WITH(_1 == 0);
-                    t(0);
-                }
-            }
+            test_sync_submit(writer.sender_, sender);
+            test_async_write_submit(writer.sender_, sender);
         }
 
         WHEN("Range write is called.")
@@ -75,28 +57,8 @@ SCENARIO("Simple actions.")
             auto sender = s.write(array{2, 3});
             REQUIRE_CALL(closure, call());
 
-            WHEN("Synchronous submit is called.")
-            {
-                ALLOW_CALL(writer.range_sender_, submit());
-                sender.submit();
-            }
-
-            WHEN("Asynchronous submit is called.")
-            {
-                completion_token t;
-                ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
-                    .LR_SIDE_EFFECT(t = _1);
-                range_callback_mock callback_mock;
-
-                sender.submit(callback_mock);
-
-                AND_WHEN("The callback is invoked.")
-                {
-                    REQUIRE_CALL(callback_mock, call(_, _))
-                        .WITH(_1 == 0 && _2 == 2);
-                    t(0, 2);
-                }
-            }
+            test_sync_submit(writer.range_sender_, sender);
+            test_async_range_submit(writer.range_sender_, sender, 2, 2);
         }
 
         WHEN("[0, 1, 2] is generated and written.")
@@ -105,28 +67,8 @@ SCENARIO("Simple actions.")
             auto sender = s.write(ranges::view::iota(0, 3));
             REQUIRE_CALL(closure, call());
 
-            WHEN("Synchronous submit is called.")
-            {
-                ALLOW_CALL(writer.range_sender_, submit());
-                sender.submit();
-            }
-
-            WHEN("Asynchronous submit is called.")
-            {
-                completion_token t;
-                ALLOW_CALL(writer.range_sender_, submit(ANY(completion_token)))
-                    .LR_SIDE_EFFECT(t = _1);
-                range_callback_mock callback_mock;
-
-                sender.submit(callback_mock);
-
-                AND_WHEN("The callback is invoked.")
-                {
-                    REQUIRE_CALL(callback_mock, call(_, _))
-                        .WITH(_1 == 0 && _2 == 3);
-                    t(0, 3);
-                }
-            }
+            test_sync_submit(writer.range_sender_, sender);
+            test_async_range_submit(writer.range_sender_, sender, 3, 3);
         }
     }
 
@@ -142,29 +84,8 @@ SCENARIO("Simple actions.")
             auto sender = s.read();
             REQUIRE_CALL(closure, call());
 
-            WHEN("Synchronous submit is called on the sender")
-            {
-                ALLOW_CALL(reader.sender_, submit()).RETURN(1);
-                auto v = sender.submit();
-                REQUIRE(v == 1);
-            }
-
-            WHEN("Asynchronous submit is called on the sender.")
-            {
-                read_token<int> t;
-                ALLOW_CALL(reader.sender_, submit(ANY(read_token<int>)))
-                    .LR_SIDE_EFFECT(t = _1);
-                read_callback_mock callback_mock;
-
-                sender.submit(callback_mock);
-
-                AND_WHEN("The callback is invoked.")
-                {
-                    REQUIRE_CALL(callback_mock, call(_, _))
-                        .WITH(_1 == 0 && _2 == 1);
-                    t(0, 1);
-                }
-            }
+            test_sync_read_submit(reader.sender_, sender, 1, 1);
+            test_async_read_submit(reader.sender_, sender, 1, 1);
         }
 
         WHEN("A range is read.")
@@ -175,27 +96,8 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call());
             REQUIRE_THAT(a, Equals(array{2, 3}));
 
-            WHEN("Synchronous submit is called on the sender")
-            {
-                ALLOW_CALL(reader.range_sender_, submit());
-                sender.submit();
-            }
-
-            WHEN("Asynchronous submit is called on the sender.")
-            {
-                completion_token t;
-                ALLOW_CALL(reader.range_sender_, submit(ANY(completion_token)))
-                    .LR_SIDE_EFFECT(t = _1);
-                read_callback_mock callback_mock;
-                sender.submit(callback_mock);
-
-                AND_WHEN("The callback is invoked.")
-                {
-                    REQUIRE_CALL(callback_mock, call(_, _))
-                        .WITH(_1 == 0 && _2 == 2);
-                    t(0, 2);
-                }
-            }
+            test_sync_submit(reader.range_sender_, sender);
+            test_async_range_submit(reader.range_sender_, sender, 2, 2);
         }
     }
 }

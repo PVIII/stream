@@ -8,6 +8,8 @@
 #ifndef TESTS_MOCKS_CALLBACK_HPP_
 #define TESTS_MOCKS_CALLBACK_HPP_
 
+#include <libstream/callback.hpp>
+
 #include <catch2/catch.hpp>
 #include <catch2/trompeloeil.hpp>
 

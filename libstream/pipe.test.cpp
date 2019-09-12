@@ -10,6 +10,7 @@
 #include <libstream/action.hpp>
 #include <libstream/transform.hpp>
 
+#include <tests/helpers/submit_tester.hpp>
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
@@ -48,11 +49,7 @@ SCENARIO("Piping without stream.")
                     auto sender = s.write(1);
                     REQUIRE_CALL(closure, call());
 
-                    WHEN("Synchronous submit is called on the sender.")
-                    {
-                        REQUIRE_CALL(writer.sender_, submit());
-                        sender.submit();
-                    }
+                    test_sync_submit(writer.sender_, sender);
                 }
             }
         }
@@ -80,11 +77,7 @@ SCENARIO("Piping without stream.")
                             auto sender = s.write(1);
                             REQUIRE_CALL(closure, call()).TIMES(2);
 
-                            WHEN("Synchronous submit is called on the sender.")
-                            {
-                                REQUIRE_CALL(writer.sender_, submit());
-                                sender.submit();
-                            }
+                            test_sync_submit(writer.sender_, sender);
                         }
                     }
                 }
@@ -105,11 +98,7 @@ SCENARIO("Piping without stream.")
                         auto sender = s.write(1);
                         REQUIRE_CALL(closure, call()).TIMES(2);
 
-                        WHEN("Synchronous submit is called on the sender.")
-                        {
-                            REQUIRE_CALL(writer.sender_, submit());
-                            sender.submit();
-                        }
+                        test_sync_submit(writer.sender_, sender);
                     }
                 }
             }
