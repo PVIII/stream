@@ -48,7 +48,8 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call());
 
             test_sync_submit(writer.sender_, sender);
-            test_async_write_submit(writer.sender_, sender);
+            test_async_write_submit(writer.sender_, sender, 0);
+            test_async_write_submit(writer.sender_, sender, 1);
         }
 
         WHEN("Range write is called.")
@@ -58,7 +59,8 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call());
 
             test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, 2, 2);
+            test_async_range_submit(writer.range_sender_, sender, 2, 2, 0);
+            test_async_range_submit(writer.range_sender_, sender, 2, 2, 1);
         }
 
         WHEN("[0, 1, 2] is generated and written.")
@@ -68,7 +70,8 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call());
 
             test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, 3, 3);
+            test_async_range_submit(writer.range_sender_, sender, 3, 3, 0);
+            test_async_range_submit(writer.range_sender_, sender, 3, 3, 1);
         }
     }
 
@@ -85,7 +88,8 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call());
 
             test_sync_read_submit(reader.sender_, sender, 1, 1);
-            test_async_read_submit(reader.sender_, sender, 1, 1);
+            test_async_read_submit(reader.sender_, sender, 1, 1, 0);
+            test_async_read_submit(reader.sender_, sender, 1, 1, 1);
         }
 
         WHEN("A range is read.")
@@ -97,7 +101,8 @@ SCENARIO("Simple actions.")
             REQUIRE_THAT(a, Equals(array{2, 3}));
 
             test_sync_submit(reader.range_sender_, sender);
-            test_async_range_submit(reader.range_sender_, sender, 2, 2);
+            test_async_range_submit(reader.range_sender_, sender, 2, 2, 0);
+            test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
         }
     }
 }

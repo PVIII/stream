@@ -37,7 +37,7 @@ void test_sync_read_submit(auto& mock_sender, auto& sender, auto produced,
     }
 }
 
-void test_async_write_submit(auto& mock_sender, auto& sender)
+void test_async_write_submit(auto& mock_sender, auto& sender, stream::error_code e)
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
@@ -51,13 +51,23 @@ void test_async_write_submit(auto& mock_sender, auto& sender)
 
         AND_WHEN("The callback is invoked.")
         {
-            REQUIRE_CALL(callback_mock, call());
-            t.done();
+        	if(e == 0)
+        	{
+	            REQUIRE_CALL(callback_mock, call());
+	            t.done();
+            }
+            else
+            {
+	            REQUIRE_CALL(error_mock, call(e));
+	            t.error(e);
+            }
         }
     }
 }
 
-void test_async_range_submit(auto& mock_sender, auto& sender, std::size_t produced_size, std::size_t expected_size)
+void test_async_range_submit(auto& mock_sender, auto& sender,
+                             std::size_t produced_size,
+                             std::size_t expected_size, stream::error_code e)
 {
     WHEN("Asynchronous submit is called.")
     {
@@ -71,14 +81,23 @@ void test_async_range_submit(auto& mock_sender, auto& sender, std::size_t produc
 
         AND_WHEN("The callback is invoked.")
         {
-            REQUIRE_CALL(callback_mock, call(expected_size));
-            t.done(produced_size);
+        	if(e == 0)
+        	{
+	            REQUIRE_CALL(callback_mock, call(expected_size));
+	            t.done(produced_size);
+	        }
+	        else
+	        {
+	        	REQUIRE_CALL(error_mock, call(e));
+	        	t.error(e);
+	        }
         }
     }
 }
 
 template<typename T>
-void test_async_read_submit(auto& mock_sender, auto& sender, auto produced, T expected)
+void test_async_read_submit(auto& mock_sender, auto& sender, auto produced,
+  							T expected, stream::error_code e)
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
@@ -92,8 +111,16 @@ void test_async_read_submit(auto& mock_sender, auto& sender, auto produced, T ex
 
         AND_WHEN("The callback is invoked.")
         {
-            REQUIRE_CALL(callback_mock, call(expected));
-            t.done(produced);
+        	if(e == 0)
+        	{
+	            REQUIRE_CALL(callback_mock, call(expected));
+	            t.done(produced);
+	        }
+	        else
+	        {
+	        	REQUIRE_CALL(error_mock, call(e));
+	        	t.error(e);
+	        }
         }
     }
 }
