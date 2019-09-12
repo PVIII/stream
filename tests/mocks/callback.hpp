@@ -17,14 +17,14 @@ namespace stream
 {
 struct write_callback_mock
 {
-    void operator()(stream::error_code e) { return call(e); }
-    MAKE_MOCK1(call, void(stream::error_code));
+    void operator()() { return call(); }
+    MAKE_MOCK0(call, void());
 };
 
 struct read_callback_mock
 {
-    void operator()(stream::error_code e, char v) { return call(e, v); }
-    MAKE_MOCK2(call, void(stream::error_code, char v));
+    void operator()(char v) { return call(v); }
+    MAKE_MOCK1(call, void(char v));
 };
 
 struct range_callback_mock

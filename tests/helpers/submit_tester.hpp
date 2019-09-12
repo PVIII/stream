@@ -45,13 +45,14 @@ void test_async_write_submit(auto& mock_sender, auto& sender)
         ALLOW_CALL(mock_sender, submit(ANY(write_token)))
             .LR_SIDE_EFFECT(t = _1;);
         write_callback_mock callback_mock;
+        error_callback_mock error_mock;
 
-        sender.submit(callback_mock);
+        sender.submit(write_token{error_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
-            REQUIRE_CALL(callback_mock, call(_)).WITH(_1 == 0);
-            t(0);
+            REQUIRE_CALL(callback_mock, call());
+            t.done();
         }
     }
 }
@@ -85,14 +86,14 @@ void test_async_read_submit(auto& mock_sender, auto& sender, auto produced, T ex
         ALLOW_CALL(mock_sender, submit(ANY(read_token<T>)))
             .LR_SIDE_EFFECT(t = _1);
         read_callback_mock callback_mock;
+        error_callback_mock error_mock;
 
-        sender.submit(callback_mock);
+        sender.submit(read_token<int>{error_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
-            REQUIRE_CALL(callback_mock, call(_, _))
-                .WITH(_1 == 0 && _2 == expected);
-            t(0, produced);
+            REQUIRE_CALL(callback_mock, call(expected));
+            t.done(produced);
         }
     }
 }

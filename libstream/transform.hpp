@@ -38,27 +38,25 @@ template<Streamable S, class F> class transform_fn
     {
         using value_type = decltype(std::declval<C>().submit());
 
-        C                         child_;
-        read_token<value_type>    token_;
-        const transform_fn<S, F>& stream_;
+        C                           child_;
+        read_done_token<value_type> done_token_;
+        const transform_fn<S, F>&   stream_;
 
         read_context(C&& c, const transform_fn<S, F>& s) : child_(c), stream_(s)
         {
         }
 
-        void handler(error_code ec, value_type v)
-        {
-            token_(ec, stream_.func_(v));
-        }
+        void done_handler(value_type v) { done_token_(stream_.func_(v)); }
 
         auto submit() { return stream_.func_(child_.submit()); }
 
         void submit(read_token<value_type>&& t)
         {
-            token_       = t;
+            done_token_  = t.done;
             using this_t = read_context<C>;
-            child_.submit(read_token<value_type>::template create<
-                          this_t, &this_t::handler>(this));
+            child_.submit(read_token<value_type>{
+                t.error, read_done_token<value_type>::template create<
+                             this_t, &this_t::done_handler>(this)});
         }
     };
     template<class C> struct write_context
