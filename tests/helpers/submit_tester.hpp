@@ -64,14 +64,14 @@ void test_async_range_submit(auto& mock_sender, auto& sender, std::size_t produc
         ALLOW_CALL(mock_sender, submit(ANY(completion_token)))
             .LR_SIDE_EFFECT(t = _1);
         range_callback_mock callback_mock;
+        error_callback_mock error_mock;
 
-        sender.submit(callback_mock);
+        sender.submit(completion_token{error_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
-            REQUIRE_CALL(callback_mock, call(_, _))
-                .WITH(_1 == 0 && _2 == expected_size);
-            t(0, produced_size);
+            REQUIRE_CALL(callback_mock, call(expected_size));
+            t.done(produced_size);
         }
     }
 }

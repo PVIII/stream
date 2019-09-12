@@ -29,8 +29,14 @@ struct read_callback_mock
 
 struct range_callback_mock
 {
-    void operator()(stream::error_code e, std::size_t n) { return call(e, n); }
-    MAKE_MOCK2(call, void(stream::error_code, std::size_t));
+    void operator()(std::size_t n) { return call(n); }
+    MAKE_MOCK1(call, void(std::size_t));
+};
+
+struct error_callback_mock
+{
+    void operator()(stream::error_code e) { return call(e); }
+    MAKE_MOCK1(call, void(stream::error_code));
 };
 
 } // namespace stream
