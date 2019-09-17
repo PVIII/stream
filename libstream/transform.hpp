@@ -33,6 +33,8 @@ template<Streamable S, class F> class transform_fn
         }
 
         auto submit() { return child_.submit(); }
+
+        void cancel() { child_.cancel(); }
     };
     template<class C> struct read_context
     {
@@ -55,9 +57,12 @@ template<Streamable S, class F> class transform_fn
             done_token_  = t.done;
             using this_t = read_context<C>;
             child_.submit(read_token<value_type>{
-                t.error, read_done_token<value_type>::template create<
-                             this_t, &this_t::done_handler>(this)});
+                t.error, t.cancelled,
+                read_done_token<value_type>::template create<
+                    this_t, &this_t::done_handler>(this)});
         }
+
+        void cancel() { child_.cancel(); }
     };
     template<class C> struct write_context
     {
@@ -71,6 +76,8 @@ template<Streamable S, class F> class transform_fn
         }
 
         void submit() { child_context_.submit(); }
+
+        void cancel() { child_context_.cancel(); }
     };
 
   private:

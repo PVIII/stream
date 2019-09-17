@@ -45,33 +45,47 @@ SCENARIO("Simple actions.")
         {
             REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
             auto sender = s.write(2);
-            REQUIRE_CALL(closure, call());
+            ALLOW_CALL(closure, call());
 
-            test_sync_submit(writer.sender_, sender);
-            test_async_write_submit(writer.sender_, sender, 0);
-            test_async_write_submit(writer.sender_, sender, 1);
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+                test_sync_submit(writer.sender_, sender);
+                test_async_write_submit(writer.sender_, sender);
+                test_async_write_submit(writer.sender_, sender, 1);
+            }
         }
 
         WHEN("Range write is called.")
         {
             REQUIRE_CALL(writer, write_(vector{2, 3}));
             auto sender = s.write(array{2, 3});
-            REQUIRE_CALL(closure, call());
+            ALLOW_CALL(closure, call());
 
-            test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, 2, 2, 0);
-            test_async_range_submit(writer.range_sender_, sender, 2, 2, 1);
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+
+                test_sync_submit(writer.range_sender_, sender);
+                test_async_range_submit(writer.range_sender_, sender, 2, 2);
+                test_async_range_submit(writer.range_sender_, sender, 2, 2, 1);
+            }
         }
 
         WHEN("[0, 1, 2] is generated and written.")
         {
             REQUIRE_CALL(writer, write_(vector{0, 1, 2}));
             auto sender = s.write(ranges::view::iota(0, 3));
-            REQUIRE_CALL(closure, call());
+            ALLOW_CALL(closure, call());
 
-            test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, 3, 3, 0);
-            test_async_range_submit(writer.range_sender_, sender, 3, 3, 1);
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+
+                test_sync_submit(writer.range_sender_, sender);
+                test_async_range_submit(writer.range_sender_, sender, 3, 3);
+                test_async_range_submit(writer.range_sender_, sender, 3, 3, 1);
+            }
         }
     }
 
@@ -85,11 +99,16 @@ SCENARIO("Simple actions.")
         {
             REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
             auto sender = s.read();
-            REQUIRE_CALL(closure, call());
+            ALLOW_CALL(closure, call());
 
-            test_sync_read_submit(reader.sender_, sender, 1, 1);
-            test_async_read_submit(reader.sender_, sender, 1, 1, 0);
-            test_async_read_submit(reader.sender_, sender, 1, 1, 1);
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+
+                test_sync_read_submit(reader.sender_, sender, 1, 1);
+                test_async_read_submit(reader.sender_, sender, 1, 1);
+                test_async_read_submit(reader.sender_, sender, 1, 1, 1);
+            }
         }
 
         WHEN("A range is read.")
@@ -97,12 +116,50 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{2, 3});
             std::array<int, 2> a;
             auto               sender = s.read(a);
-            REQUIRE_CALL(closure, call());
             REQUIRE_THAT(a, Equals(array{2, 3}));
+            ALLOW_CALL(closure, call());
 
-            test_sync_submit(reader.range_sender_, sender);
-            test_async_range_submit(reader.range_sender_, sender, 2, 2, 0);
-            test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+
+                test_sync_submit(reader.range_sender_, sender);
+                test_async_range_submit(reader.range_sender_, sender, 2, 2);
+                test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+            }
+        }
+    }
+}
+
+SCENARIO("Cancelling operations.")
+{
+    GIVEN("A write stream.")
+    {
+        write_mock  writer;
+        action_mock closure;
+        auto        s = action(writer, closure);
+
+        WHEN("Single value write is called.")
+        {
+            REQUIRE_CALL(writer, write(1)).LR_RETURN(writer.sender_);
+            auto sender = s.write(1);
+            ALLOW_CALL(closure, call());
+
+            WHEN("The operation is cancelled.")
+            {
+                write_token t;
+                ALLOW_CALL(writer.sender_, submit(ANY(write_token)))
+                    .LR_SIDE_EFFECT(t = _1;);
+                cancel_callback_mock cancel_mock;
+
+                sender.submit(write_token{error_callback_mock{}, cancel_mock,
+                                          write_callback_mock{}});
+                REQUIRE_CALL(writer.sender_, cancel());
+                sender.cancel();
+
+                REQUIRE_CALL(cancel_mock, call());
+                t.cancelled();
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ namespace stream
 using error_code = int;
 
 using error_token                          = SA::delegate<void(error_code)>;
+using cancel_token                         = SA::delegate<void()>;
 using range_done_token                     = SA::delegate<void(std::size_t)>;
 using done_token                           = SA::delegate<void()>;
 template<typename T> using read_done_token = SA::delegate<void(T v)>;
@@ -24,18 +25,21 @@ template<typename T> using read_done_token = SA::delegate<void(T v)>;
 struct completion_token
 {
     error_token      error;
+    cancel_token     cancelled;
     range_done_token done;
 };
 
 struct write_token
 {
-    error_token error;
-    done_token  done;
+    error_token  error;
+    cancel_token cancelled;
+    done_token   done;
 };
 
 template<typename T> struct read_token
 {
     error_token        error;
+    cancel_token       cancelled;
     read_done_token<T> done;
 };
 

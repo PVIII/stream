@@ -39,6 +39,12 @@ struct error_callback_mock
     MAKE_MOCK1(call, void(stream::error_code));
 };
 
+struct cancel_callback_mock
+{
+    void operator()() { return call(); }
+    MAKE_MOCK0(call, void());
+};
+
 } // namespace stream
 
 #endif /* TESTS_MOCKS_CALLBACK_HPP_ */

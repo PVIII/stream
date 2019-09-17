@@ -28,11 +28,13 @@ struct read_mock
     {
         MAKE_MOCK0(submit, int());
         MAKE_MOCK1(submit, void(read_token<int>&&));
+        MAKE_MOCK0(cancel, void());
     };
     struct range_sender
     {
         MAKE_MOCK0(submit, void());
         MAKE_MOCK1(submit, void(completion_token&&));
+        MAKE_MOCK0(cancel, void());
     };
     sender       sender_;
     range_sender range_sender_;

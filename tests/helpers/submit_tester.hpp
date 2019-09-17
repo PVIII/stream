@@ -37,7 +37,7 @@ void test_sync_read_submit(auto& mock_sender, auto& sender, auto produced,
     }
 }
 
-void test_async_write_submit(auto& mock_sender, auto& sender, stream::error_code e)
+void test_async_write_submit(auto& mock_sender, auto& sender, stream::error_code e = 0)
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
@@ -46,10 +46,11 @@ void test_async_write_submit(auto& mock_sender, auto& sender, stream::error_code
             .LR_SIDE_EFFECT(t = _1;);
         write_callback_mock callback_mock;
         error_callback_mock error_mock;
+        cancel_callback_mock cancel_mock;
 
-        sender.submit(write_token{error_mock, callback_mock});
+        sender.submit(write_token{error_mock, cancel_mock, callback_mock});
 
-        AND_WHEN("The callback is invoked.")
+        WHEN("The callback is invoked.")
         {
         	if(e == 0)
         	{
@@ -67,7 +68,8 @@ void test_async_write_submit(auto& mock_sender, auto& sender, stream::error_code
 
 void test_async_range_submit(auto& mock_sender, auto& sender,
                              std::size_t produced_size,
-                             std::size_t expected_size, stream::error_code e)
+                             std::size_t expected_size,
+                             stream::error_code e = 0)
 {
     WHEN("Asynchronous submit is called.")
     {
@@ -76,8 +78,10 @@ void test_async_range_submit(auto& mock_sender, auto& sender,
             .LR_SIDE_EFFECT(t = _1);
         range_callback_mock callback_mock;
         error_callback_mock error_mock;
+        cancel_callback_mock cancel_mock;
 
-        sender.submit(completion_token{error_mock, callback_mock});
+        sender.submit(completion_token{error_mock, cancel_mock,
+        							   callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
@@ -97,7 +101,7 @@ void test_async_range_submit(auto& mock_sender, auto& sender,
 
 template<typename T>
 void test_async_read_submit(auto& mock_sender, auto& sender, auto produced,
-  							T expected, stream::error_code e)
+  							T expected, stream::error_code e = 0)
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
@@ -106,8 +110,9 @@ void test_async_read_submit(auto& mock_sender, auto& sender, auto produced,
             .LR_SIDE_EFFECT(t = _1);
         read_callback_mock callback_mock;
         error_callback_mock error_mock;
+        cancel_callback_mock cancel_mock;
 
-        sender.submit(read_token<int>{error_mock, callback_mock});
+        sender.submit(read_token<int>{error_mock, cancel_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {

@@ -41,6 +41,8 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
             stream_.pre_();
             return child_.submit();
         }
+
+        void cancel() { child_.cancel(); }
     };
 
   private:
