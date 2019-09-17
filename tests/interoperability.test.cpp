@@ -33,7 +33,7 @@ SCENARIO("Actions and transformations.")
     {
         write_mock writer;
 
-        auto s  = stream::transform(writer, [](auto v) { return v + 1; });
+        auto s  = stream::transform_write(writer, [](auto v) { return v + 1; });
         auto s2 = action(s, closure);
 
         WHEN("Single value write is called")
@@ -74,7 +74,7 @@ SCENARIO("Actions and transformations.")
     {
         read_mock reader;
 
-        auto s  = stream::transform(reader, [](auto v) { return v + 1; });
+        auto s  = stream::transform_read(reader, [](auto v) { return v + 1; });
         auto s2 = action(s, closure);
 
         WHEN("Single read is called")
@@ -120,8 +120,8 @@ SCENARIO("Cancelling operations.")
     {
         write_mock  writer;
         action_mock closure;
-        auto        s = stream::transform(writer, [](auto v) { return v + 1; });
-        auto        s2 = action(s, closure);
+        auto s  = stream::transform_write(writer, [](auto v) { return v + 1; });
+        auto s2 = action(s, closure);
 
         WHEN("Single value write is called.")
         {
@@ -153,7 +153,7 @@ SCENARIO("Pipe interoperability.")
     action_mock closure;
     write_mock  writer;
 
-    auto s = writer | stream::transform([](auto v) { return v + 1; }) |
+    auto s = writer | stream::transform_write([](auto v) { return v + 1; }) |
              action(closure);
 
     WHEN("Single write is called")

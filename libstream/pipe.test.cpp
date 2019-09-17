@@ -32,8 +32,8 @@ SCENARIO("Piping without stream.")
 
     THEN("A pure pipe can be created.")
     {
-        auto p1 =
-            stream::transform([](auto v) { return v + 1; }) | action(closure);
+        auto p1 = stream::transform_write([](auto v) { return v + 1; }) |
+                  action(closure);
 
         GIVEN("A write stream.")
         {
@@ -55,8 +55,9 @@ SCENARIO("Piping without stream.")
         }
         GIVEN("Another pure pipe.")
         {
-            const auto p2 = stream::transform([](auto v) { return v * 2; }) |
-                            action(closure);
+            const auto p2 =
+                stream::transform_write([](auto v) { return v * 2; }) |
+                action(closure);
 
             THEN("They can be combined.")
             {
@@ -107,8 +108,8 @@ SCENARIO("Piping without stream.")
 
     THEN("A const pure pipe can be created.")
     {
-        const auto p =
-            stream::transform([](auto v) { return v + 1; }) | action(closure);
+        const auto p = stream::transform_write([](auto v) { return v + 1; }) |
+                       action(closure);
 
         GIVEN("A write stream.")
         {

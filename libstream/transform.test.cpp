@@ -35,7 +35,7 @@ SCENARIO("Transformations with single values.")
     GIVEN("A write stream that adds one.")
     {
         write_mock writer;
-        auto       s = stream::transform(writer, [](auto v) { return v + 1; });
+        auto s = stream::transform_write(writer, [](auto v) { return v + 1; });
 
         WHEN("Single write is called")
         {
@@ -72,7 +72,7 @@ SCENARIO("Transformations with single values.")
     GIVEN("A read stream that adds one.")
     {
         read_mock reader;
-        auto      s = stream::transform(reader, [](auto v) { return v + 1; });
+        auto s = stream::transform_read(reader, [](auto v) { return v + 1; });
 
         WHEN("Single read is called")
         {
@@ -103,8 +103,8 @@ SCENARIO("Change the value type.")
     GIVEN("A write stream that adds a pair.")
     {
         write_mock writer;
-        auto       s = stream::transform(writer,
-                                   [](auto v) { return v.first + v.second; });
+        auto       s = stream::transform_write(
+            writer, [](auto v) { return v.first + v.second; });
 
         WHEN("Single write is called")
         {
@@ -116,7 +116,7 @@ SCENARIO("Change the value type.")
     GIVEN("A read stream that converts an integer to a complex number.")
     {
         read_mock reader;
-        auto      s = stream::transform(reader, [](auto v) {
+        auto      s = stream::transform_read(reader, [](auto v) {
             return std::complex{v, 3};
         });
         REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
@@ -134,7 +134,7 @@ SCENARIO("Const transform adaptor.")
         THEN("A constant adaptor can refer to it.")
         {
             [[maybe_unused]] const auto s =
-                stream::transform(writer, [](auto v) { return v + 1; });
+                stream::transform_write(writer, [](auto v) { return v + 1; });
         }
     }
 
@@ -144,7 +144,7 @@ SCENARIO("Const transform adaptor.")
         THEN("A constant adaptor can refer to it.")
         {
             [[maybe_unused]] const auto s =
-                stream::transform(reader, [](auto v) { return v + 1; });
+                stream::transform_read(reader, [](auto v) { return v + 1; });
         }
     }
 }
@@ -152,7 +152,7 @@ SCENARIO("Const transform adaptor.")
 SCENARIO("R-value writer and callback")
 {
     [[maybe_unused]] auto s =
-        stream::transform(move_only_reader{}, [](int v) { return v; });
+        stream::transform_read(move_only_reader{}, [](int v) { return v; });
 }
 
 SCENARIO("Pipe operator")
@@ -160,7 +160,7 @@ SCENARIO("Pipe operator")
     write_mock writer;
 
     [[maybe_unused]] auto s =
-        writer | stream::transform([](int v) { return v; });
+        writer | stream::transform_write([](int v) { return v; });
 }
 
 SCENARIO("Double transform")
@@ -169,8 +169,8 @@ SCENARIO("Double transform")
     {
         write_mock writer;
 
-        auto s = stream::transform(
-            stream::transform(writer, [](auto v) { return v + 1; }),
+        auto s = stream::transform_write(
+            stream::transform_write(writer, [](auto v) { return v + 1; }),
             [](auto v) { return v * 2; });
 
         WHEN("Single value write is called.")
@@ -192,7 +192,8 @@ SCENARIO("Random access range is preserved.")
 
         WHEN("It is transformed.")
         {
-            auto s = stream::transform(writer, [](auto v) { return v + 1; });
+            auto s =
+                stream::transform_write(writer, [](auto v) { return v + 1; });
 
             WHEN("A bidirectional range is written.")
             {
