@@ -20,7 +20,7 @@ SCENARIO("Assignments.")
 {
     GIVEN("An array with one element.")
     {
-        array<char, 1> a;
+        array<int, 1> a;
         auto v = output_view::transform(a, [](auto v) { return v + 1; });
 
         WHEN("Zero is assigned.")
@@ -32,7 +32,7 @@ SCENARIO("Assignments.")
 
     GIVEN("An array with two elements.")
     {
-        array<char, 2> a;
+        array<int, 2> a;
         auto v = output_view::transform(a, [](auto v) { return v + 1; });
 
         WHEN("[0, 1] is copied.")
