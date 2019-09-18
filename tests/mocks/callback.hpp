@@ -23,8 +23,8 @@ struct write_callback_mock
 
 struct read_callback_mock
 {
-    void operator()(char v) { return call(v); }
-    MAKE_MOCK1(call, void(char v));
+    void operator()(int v) { return call(v); }
+    MAKE_MOCK1(call, void(int v));
 };
 
 struct range_callback_mock
