@@ -13,7 +13,6 @@
 #include <catch2/catch.hpp>
 #include <catch2/trompeloeil.hpp>
 
-#include <array>
 #include <experimental/ranges/algorithm>
 #include <experimental/ranges/concepts>
 #include <vector>
