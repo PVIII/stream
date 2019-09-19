@@ -22,26 +22,16 @@ using range_done_token                     = SA::delegate<void(std::size_t)>;
 using done_token                           = SA::delegate<void()>;
 template<typename T> using read_done_token = SA::delegate<void(T v)>;
 
-struct completion_token
+template<class... Ret> struct token
 {
-    error_token      error;
-    cancel_token     cancelled;
-    range_done_token done;
+    error_token                error;
+    cancel_token               cancelled;
+    SA::delegate<void(Ret...)> done;
 };
 
-struct write_token
-{
-    error_token  error;
-    cancel_token cancelled;
-    done_token   done;
-};
-
-template<typename T> struct read_token
-{
-    error_token        error;
-    cancel_token       cancelled;
-    read_done_token<T> done;
-};
+using completion_token                = token<std::size_t>;
+using write_token                     = token<>;
+template<typename T> using read_token = token<T>;
 
 } // namespace stream
 
