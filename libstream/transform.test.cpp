@@ -51,8 +51,8 @@ SCENARIO("Transformations with single values.")
         WHEN("Range write is called")
         {
             REQUIRE_CALL(writer, write_(vector{2, 3}));
-            auto a      = array{1, 2};
-            auto sender = s.write(a);
+            array a{1, 2};
+            auto  sender = s.write(a);
 
             test_sync_submit(writer.range_sender_, sender);
             test_async_range_submit(writer.range_sender_, sender, {2, 2});
@@ -76,8 +76,8 @@ SCENARIO("Transformations with single values.")
             writer.restrict_to_ = 1;
 
             REQUIRE_CALL(writer, write_(vector{2}));
-            auto a      = array{1, 2};
-            auto sender = s.write(a);
+            array a{1, 2};
+            auto  sender = s.write(a);
 
             test_sync_submit(writer.range_sender_, sender);
             test_async_range_submit(writer.range_sender_, sender, {1, 1});
@@ -105,8 +105,8 @@ SCENARIO("Transformations with single values.")
         WHEN("A range is read.")
         {
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1, 2});
-            std::array<int, 2> a;
-            auto               sender = s.read(a);
+            array a{0, 0};
+            auto  sender = s.read(a);
             REQUIRE_THAT(a, Equals(array{2, 3}));
 
             test_sync_submit(reader.range_sender_, sender);
@@ -119,9 +119,9 @@ SCENARIO("Transformations with single values.")
         WHEN("Reading less than the buffer size.")
         {
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1});
-            std::array a{0, 0};
-            auto       sender = s.read(a);
-            REQUIRE_THAT(a, Equals(std::array{2, 0}));
+            array a{0, 0};
+            auto  sender = s.read(a);
+            REQUIRE_THAT(a, Equals(array{2, 0}));
 
             test_sync_submit(reader.range_sender_, sender);
             test_async_range_submit(reader.range_sender_, sender,
@@ -161,9 +161,9 @@ SCENARIO("Transformations with single values.")
             {
                 REQUIRE_CALL(readwriter, readwrite_(vector{2, 3}, _))
                     .SIDE_EFFECT(_2 = vector{4, 5});
-                std::array<int, 2> a_read;
-                std::array         a_write{2, 3};
-                auto               sender = s.readwrite(a_write, a_read);
+                array a_read{0, 0};
+                array a_write{2, 3};
+                auto  sender = s.readwrite(a_write, a_read);
                 REQUIRE_THAT(a_read, Equals(array{5, 6}));
 
                 WHEN("The operation is not cancelled.")
@@ -222,9 +222,9 @@ SCENARIO("Transformations with single values.")
             {
                 REQUIRE_CALL(readwriter, readwrite_(vector{3, 4}, _))
                     .SIDE_EFFECT(_2 = vector{4, 5});
-                std::array<int, 2> a_read;
-                std::array         a_write{2, 3};
-                auto               sender = s.readwrite(a_write, a_read);
+                array a_read{0, 0};
+                array a_write{2, 3};
+                auto  sender = s.readwrite(a_write, a_read);
                 REQUIRE_THAT(a_read, Equals(array{4, 5}));
 
                 WHEN("The operation is not cancelled.")
@@ -259,13 +259,13 @@ SCENARIO("Change the value type.")
     {
         read_mock reader;
         auto      s = stream::transform_read(reader, [](auto v) {
-            return std::complex{v, 3};
+            return complex{v, 3};
         });
         REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
         auto sender = s.read();
 
         test_sync_read_submit(reader.sender_, sender,
-                              test_pair{2, std::complex{2, 3}});
+                              test_pair{2, complex{2, 3}});
     }
 }
 
@@ -341,14 +341,14 @@ SCENARIO("Random access range is preserved.")
             WHEN("A bidirectional range is written.")
             {
                 REQUIRE_CALL(writer, bidirectional_write_());
-                std::list<int> l;
+                list<int> l;
                 s.write(l);
             }
 
             WHEN("A random-access range is written.")
             {
                 REQUIRE_CALL(writer, random_access_write_());
-                std::deque<int> v;
+                deque<int> v;
                 s.write(v);
             }
         }

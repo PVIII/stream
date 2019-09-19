@@ -17,7 +17,6 @@
 #include <catch2/trompeloeil.hpp>
 
 using namespace stream;
-using namespace std;
 using trompeloeil::_;
 
 struct action_mock

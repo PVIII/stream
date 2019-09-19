@@ -98,7 +98,7 @@ SCENARIO("Actions and transformations.")
         WHEN("A range is read.")
         {
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1, 2});
-            std::array<int, 2> a;
+            array<int, 2> a;
 
             auto sender = s2.read(a);
             REQUIRE_THAT(a, Equals(array{2, 3}));

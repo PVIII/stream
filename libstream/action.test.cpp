@@ -118,8 +118,8 @@ SCENARIO("Simple actions.")
         WHEN("A range is read.")
         {
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{2, 3});
-            std::array<int, 2> a;
-            auto               sender = s.read(a);
+            array a{0, 0};
+            auto  sender = s.read(a);
             REQUIRE_THAT(a, Equals(array{2, 3}));
             ALLOW_CALL(closure, call());
 
@@ -166,8 +166,8 @@ SCENARIO("Simple actions.")
         {
             REQUIRE_CALL(readwriter, readwrite_(vector{2, 3}, _))
                 .SIDE_EFFECT(_2 = vector{4, 5});
-            std::array<int, 2> a;
-            auto               sender = s.readwrite(array{2, 3}, a);
+            array a{0, 0};
+            auto  sender = s.readwrite(array{2, 3}, a);
             REQUIRE_THAT(a, Equals(array{4, 5}));
             ALLOW_CALL(closure, call());
 
@@ -298,14 +298,14 @@ SCENARIO("Contiguous range is preserved.")
         WHEN("With a BidirectionalRange.")
         {
             REQUIRE_CALL(writer, bidirectional_write_());
-            std::list<int> l;
+            list<int> l;
             s.write(l);
         }
 
         WHEN("With a ContiguousRange.")
         {
             REQUIRE_CALL(writer, contiguous_write_());
-            std::vector<int> v;
+            vector<int> v;
             s.write(v);
         }
     }
