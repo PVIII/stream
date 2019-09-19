@@ -38,6 +38,7 @@ struct write_mock
         MAKE_MOCK0(cancel, void());
     };
     bool         check_range_type_ = false;
+    std::size_t  restrict_to_      = 0;
     sender       sender_{};
     range_sender range_sender_{};
 
@@ -61,7 +62,15 @@ struct write_mock
                 bidirectional_write_();
             }
         }
-        write_(std::vector<int>{ranges::begin(r), ranges::end(r)});
+        if(restrict_to_ == 0)
+        { write_(std::vector<int>{ranges::begin(r), ranges::end(r)}); }
+        else
+        {
+            auto shortened =
+                r | ranges::view::take(restrict_to_) | ranges::view::common;
+            write_(std::vector<int>{ranges::begin(shortened),
+                                    ranges::end(shortened)});
+        }
         return range_sender_;
     }
 };

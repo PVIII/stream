@@ -70,6 +70,20 @@ SCENARIO("Transformations with single values.")
             test_async_range_submit(writer.range_sender_, sender, {3, 3},
                                     dummy_error);
         }
+
+        WHEN("Writing less than buffer size.")
+        {
+            writer.restrict_to_ = 1;
+
+            REQUIRE_CALL(writer, write_(vector{2}));
+            auto a      = array{1, 2};
+            auto sender = s.write(a);
+
+            test_sync_submit(writer.range_sender_, sender);
+            test_async_range_submit(writer.range_sender_, sender, {1, 1});
+            test_async_range_submit(writer.range_sender_, sender, {1, 1},
+                                    dummy_error);
+        }
     }
 
     GIVEN("A read stream that adds one.")
@@ -101,9 +115,23 @@ SCENARIO("Transformations with single values.")
             test_async_range_submit(reader.range_sender_, sender,
                                     test_pair{2, 2}, dummy_error);
         }
+
+        WHEN("Reading less than the buffer size.")
+        {
+            REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1});
+            std::array a{0, 0};
+            auto       sender = s.read(a);
+            REQUIRE_THAT(a, Equals(std::array{2, 0}));
+
+            test_sync_submit(reader.range_sender_, sender);
+            test_async_range_submit(reader.range_sender_, sender,
+                                    test_pair{1, 1});
+            test_async_range_submit(reader.range_sender_, sender,
+                                    test_pair{1, 1}, dummy_error);
+        }
     }
 
-    GIVEN("A read-write stream..")
+    GIVEN("A read-write stream.")
     {
         read_write_mock readwriter;
 
@@ -145,6 +173,25 @@ SCENARIO("Transformations with single values.")
                                             {2, 2});
                     test_async_range_submit(readwriter.range_sender_, sender,
                                             {2, 2}, dummy_error);
+                }
+            }
+
+            WHEN("Buffer sizes are different.")
+            {
+                REQUIRE_CALL(readwriter, readwrite_(vector{2, 3}, _))
+                    .SIDE_EFFECT(_2 = vector{4, 5, 6});
+                array a_read{0, 0, 0, 0};
+                array a_write{2, 3};
+                auto  sender = s.readwrite(a_write, a_read);
+                REQUIRE_THAT(a_read, Equals(array{5, 6, 7, 0}));
+
+                WHEN("The operation is not cancelled.")
+                {
+                    test_sync_submit(readwriter.range_sender_, sender);
+                    test_async_range_submit(readwriter.range_sender_, sender,
+                                            {3, 3});
+                    test_async_range_submit(readwriter.range_sender_, sender,
+                                            {3, 3}, dummy_error);
                 }
             }
         }
