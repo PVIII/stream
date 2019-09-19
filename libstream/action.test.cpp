@@ -12,6 +12,7 @@
 #include <tests/helpers/submit_tester.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
+#include <tests/mocks/readwritestream.hpp>
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
@@ -126,6 +127,50 @@ SCENARIO("Simple actions.")
                 test_sync_submit(reader.range_sender_, sender);
                 test_async_range_submit(reader.range_sender_, sender, 2, 2);
                 test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+            }
+        }
+    }
+
+    GIVEN("A read-write stream.")
+    {
+        read_write_mock readwriter;
+        action_mock     closure;
+        auto            s = action(readwriter, closure);
+
+        WHEN("A single value is read and written.")
+        {
+            REQUIRE_CALL(readwriter, readwrite(1))
+                .LR_RETURN(readwriter.sender_);
+            auto sender = s.readwrite(1);
+            ALLOW_CALL(closure, call());
+
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+
+                test_sync_read_submit(readwriter.sender_, sender, 1, 1);
+                test_async_read_submit(readwriter.sender_, sender, 1, 1);
+                test_async_read_submit(readwriter.sender_, sender, 1, 1, 1);
+            }
+        }
+
+        WHEN("Ranges are read and written.")
+        {
+            REQUIRE_CALL(readwriter, readwrite_(vector{2, 3}, _))
+                .SIDE_EFFECT(_2 = vector{4, 5});
+            std::array<int, 2> a;
+            auto               sender = s.readwrite(array{2, 3}, a);
+            REQUIRE_THAT(a, Equals(array{4, 5}));
+            ALLOW_CALL(closure, call());
+
+            WHEN("The operation is not cancelled.")
+            {
+                REQUIRE_CALL(closure, call());
+
+                test_sync_submit(readwriter.range_sender_, sender);
+                test_async_range_submit(readwriter.range_sender_, sender, 2, 2);
+                test_async_range_submit(readwriter.range_sender_, sender, 2, 2,
+                                        1);
             }
         }
     }

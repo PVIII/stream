@@ -55,28 +55,45 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
     {
     }
 
-    auto read() const requires ReadStreamable<S>
+    auto read() const requires PureReadStreamable<S>
     {
         return context<decltype(stream_.read())>{stream_.read(), *this};
     }
 
-    template<ranges::Range R> auto read(R&& r) const requires ReadStreamable<S>
+    template<ranges::Range R>
+    auto read(R&& r) const requires PureReadStreamable<S>
     {
         return context<decltype(stream_.read(std::forward<R>(r)))>{
             stream_.read(std::forward<R>(r)), *this};
     }
 
     template<ranges::InputRange R>
-    auto write(R&& r) const requires WriteStreamable<S>
+    auto write(R&& r) const requires PureWriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<R>(r)))>{
             stream_.write(std::forward<R>(r)), *this};
     }
 
-    template<class V> auto write(V&& v) const requires WriteStreamable<S>
+    template<class V> auto write(V&& v) const requires PureWriteStreamable<S>
     {
         return context<decltype(stream_.write(std::forward<V>(v)))>{
             stream_.write(std::forward<V>(v)), *this};
+    }
+
+    template<class V>
+    auto readwrite(V&& v) const requires ReadWriteStreamable<S>
+    {
+        return context<decltype(stream_.readwrite(std::forward<V>(v)))>{
+            stream_.readwrite(std::forward<V>(v)), *this};
+    }
+
+    template<ranges::InputRange Rin, ranges::Range Rout>
+    auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
+    {
+        return context<decltype(stream_.readwrite(std::forward<Rin>(rin),
+                                                  std::forward<Rout>(rout)))>{
+            stream_.readwrite(std::forward<Rin>(rin), std::forward<Rout>(rout)),
+            *this};
     }
 };
 

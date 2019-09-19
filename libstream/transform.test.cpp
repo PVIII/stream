@@ -12,6 +12,7 @@
 #include <tests/helpers/submit_tester.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
+#include <tests/mocks/readwritestream.hpp>
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
@@ -94,6 +95,89 @@ SCENARIO("Transformations with single values.")
             test_sync_submit(reader.range_sender_, sender);
             test_async_range_submit(reader.range_sender_, sender, 2, 2);
             test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+        }
+    }
+
+    GIVEN("A read-write stream..")
+    {
+        read_write_mock readwriter;
+
+        GIVEN("That adds one to reads.")
+        {
+            auto s = stream::transform_read(readwriter,
+                                            [](auto v) { return v + 1; });
+
+            WHEN("A single value is read and written.")
+            {
+                REQUIRE_CALL(readwriter, readwrite(1))
+                    .LR_RETURN(readwriter.sender_);
+                auto sender = s.readwrite(1);
+
+                WHEN("The operation is not cancelled.")
+                {
+                    test_sync_read_submit(readwriter.sender_, sender, 1, 2);
+                    test_async_read_submit(readwriter.sender_, sender, 1, 2);
+                    test_async_read_submit(readwriter.sender_, sender, 1, 2, 1);
+                }
+            }
+
+            WHEN("Ranges are read and written.")
+            {
+                REQUIRE_CALL(readwriter, readwrite_(vector{2, 3}, _))
+                    .SIDE_EFFECT(_2 = vector{4, 5});
+                std::array<int, 2> a_read;
+                std::array         a_write{2, 3};
+                auto               sender = s.readwrite(a_write, a_read);
+                REQUIRE_THAT(a_read, Equals(array{5, 6}));
+
+                WHEN("The operation is not cancelled.")
+                {
+                    test_sync_submit(readwriter.range_sender_, sender);
+                    test_async_range_submit(readwriter.range_sender_, sender, 2,
+                                            2);
+                    test_async_range_submit(readwriter.range_sender_, sender, 2,
+                                            2, 1);
+                }
+            }
+        }
+
+        GIVEN("That adds one to writes.")
+        {
+            auto s = stream::transform_write(readwriter,
+                                             [](auto v) { return v + 1; });
+
+            WHEN("A single value is read and written.")
+            {
+                REQUIRE_CALL(readwriter, readwrite(2))
+                    .LR_RETURN(readwriter.sender_);
+                auto sender = s.readwrite(1);
+
+                WHEN("The operation is not cancelled.")
+                {
+                    test_sync_read_submit(readwriter.sender_, sender, 1, 1);
+                    test_async_read_submit(readwriter.sender_, sender, 1, 1);
+                    test_async_read_submit(readwriter.sender_, sender, 1, 1, 1);
+                }
+            }
+
+            WHEN("Ranges are read and written.")
+            {
+                REQUIRE_CALL(readwriter, readwrite_(vector{3, 4}, _))
+                    .SIDE_EFFECT(_2 = vector{4, 5});
+                std::array<int, 2> a_read;
+                std::array         a_write{2, 3};
+                auto               sender = s.readwrite(a_write, a_read);
+                REQUIRE_THAT(a_read, Equals(array{4, 5}));
+
+                WHEN("The operation is not cancelled.")
+                {
+                    test_sync_submit(readwriter.range_sender_, sender);
+                    test_async_range_submit(readwriter.range_sender_, sender, 2,
+                                            2);
+                    test_async_range_submit(readwriter.range_sender_, sender, 2,
+                                            2, 1);
+                }
+            }
         }
     }
 }
