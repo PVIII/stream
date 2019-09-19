@@ -53,7 +53,7 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call());
                 test_sync_submit(writer.sender_, sender);
                 test_async_write_submit(writer.sender_, sender);
-                test_async_write_submit(writer.sender_, sender, 1);
+                test_async_write_submit(writer.sender_, sender, dummy_error);
             }
         }
 
@@ -68,8 +68,9 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call());
 
                 test_sync_submit(writer.range_sender_, sender);
-                test_async_range_submit(writer.range_sender_, sender, 2, 2);
-                test_async_range_submit(writer.range_sender_, sender, 2, 2, 1);
+                test_async_range_submit(writer.range_sender_, sender, {2, 2});
+                test_async_range_submit(writer.range_sender_, sender, {2, 2},
+                                        dummy_error);
             }
         }
 
@@ -84,8 +85,9 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call());
 
                 test_sync_submit(writer.range_sender_, sender);
-                test_async_range_submit(writer.range_sender_, sender, 3, 3);
-                test_async_range_submit(writer.range_sender_, sender, 3, 3, 1);
+                test_async_range_submit(writer.range_sender_, sender, {3, 3});
+                test_async_range_submit(writer.range_sender_, sender, {3, 3},
+                                        dummy_error);
             }
         }
     }
@@ -106,9 +108,10 @@ SCENARIO("Simple actions.")
             {
                 REQUIRE_CALL(closure, call());
 
-                test_sync_read_submit(reader.sender_, sender, 1, 1);
-                test_async_read_submit(reader.sender_, sender, 1, 1);
-                test_async_read_submit(reader.sender_, sender, 1, 1, 1);
+                test_sync_read_submit(reader.sender_, sender, test_pair{1, 1});
+                test_async_read_submit(reader.sender_, sender, test_pair{1, 1});
+                test_async_read_submit(reader.sender_, sender, test_pair{1, 1},
+                                       dummy_error);
             }
         }
 
@@ -125,8 +128,10 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call());
 
                 test_sync_submit(reader.range_sender_, sender);
-                test_async_range_submit(reader.range_sender_, sender, 2, 2);
-                test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+                test_async_range_submit(reader.range_sender_, sender,
+                                        test_pair{2, 2});
+                test_async_range_submit(reader.range_sender_, sender,
+                                        test_pair{2, 2}, dummy_error);
             }
         }
     }
@@ -148,9 +153,12 @@ SCENARIO("Simple actions.")
             {
                 REQUIRE_CALL(closure, call());
 
-                test_sync_read_submit(readwriter.sender_, sender, 1, 1);
-                test_async_read_submit(readwriter.sender_, sender, 1, 1);
-                test_async_read_submit(readwriter.sender_, sender, 1, 1, 1);
+                test_sync_read_submit(readwriter.sender_, sender,
+                                      test_pair{1, 1});
+                test_async_read_submit(readwriter.sender_, sender,
+                                       test_pair{1, 1});
+                test_async_read_submit(readwriter.sender_, sender,
+                                       test_pair{1, 1}, dummy_error);
             }
         }
 
@@ -168,9 +176,10 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call());
 
                 test_sync_submit(readwriter.range_sender_, sender);
-                test_async_range_submit(readwriter.range_sender_, sender, 2, 2);
-                test_async_range_submit(readwriter.range_sender_, sender, 2, 2,
-                                        1);
+                test_async_range_submit(readwriter.range_sender_, sender,
+                                        {2, 2});
+                test_async_range_submit(readwriter.range_sender_, sender,
+                                        {2, 2}, dummy_error);
             }
         }
     }

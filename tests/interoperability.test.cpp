@@ -64,8 +64,9 @@ SCENARIO("Actions and transformations.")
                 REQUIRE_CALL(closure, call());
 
                 test_sync_submit(writer.range_sender_, sender);
-                test_async_range_submit(writer.range_sender_, sender, 2, 2);
-                test_async_range_submit(writer.range_sender_, sender, 2, 2, 1);
+                test_async_range_submit(writer.range_sender_, sender, {2, 2});
+                test_async_range_submit(writer.range_sender_, sender, {2, 2},
+                                        dummy_error);
             }
         }
     }
@@ -87,9 +88,10 @@ SCENARIO("Actions and transformations.")
             {
                 REQUIRE_CALL(closure, call());
 
-                test_sync_read_submit(reader.sender_, sender, 1, 2);
-                test_async_read_submit(reader.sender_, sender, 1, 2);
-                test_async_read_submit(reader.sender_, sender, 1, 2, 1);
+                test_sync_read_submit(reader.sender_, sender, test_pair{1, 2});
+                test_async_read_submit(reader.sender_, sender, test_pair{1, 2});
+                test_async_read_submit(reader.sender_, sender, test_pair{1, 2},
+                                       dummy_error);
             }
         }
 
@@ -107,8 +109,9 @@ SCENARIO("Actions and transformations.")
                 REQUIRE_CALL(closure, call());
 
                 test_sync_submit(reader.range_sender_, sender);
-                test_async_range_submit(reader.range_sender_, sender, 2, 2);
-                test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+                test_async_range_submit(reader.range_sender_, sender, {2, 2});
+                test_async_range_submit(reader.range_sender_, sender, {2, 2},
+                                        dummy_error);
             }
         }
     }

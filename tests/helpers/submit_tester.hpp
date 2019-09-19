@@ -17,6 +17,22 @@ using trompeloeil::_;
 
 namespace stream
 {
+constexpr error_code dummy_error = 1;
+
+template<class P, class E> struct test_pair
+{
+    P produced_;
+    E expected_;
+
+    test_pair(P p, E e) : produced_(p), expected_(e) {}
+    template<class P2, class E2>
+    test_pair(test_pair<P2, E2> p)
+        : produced_(p.produced_), expected_(p.expected_)
+    {
+    }
+};
+
+template<class P, class E> test_pair(P, E)->test_pair<P, E>;
 
 void test_sync_submit(auto& mock_sender, auto& sender)
 {
@@ -27,108 +43,107 @@ void test_sync_submit(auto& mock_sender, auto& sender)
     }
 }
 
-void test_sync_read_submit(auto& mock_sender, auto& sender, auto produced,
-                           auto expected)
+template<class P, class E>
+void test_sync_read_submit(auto& mock_sender, auto& sender, test_pair<P, E> p)
 {
     WHEN("Synchronous submit is called on the sender.")
     {
-        ALLOW_CALL(mock_sender, submit()).RETURN(produced);
-        REQUIRE(sender.submit() == expected);
+        ALLOW_CALL(mock_sender, submit()).RETURN(p.produced_);
+        REQUIRE(sender.submit() == p.expected_);
     }
 }
 
-void test_async_write_submit(auto& mock_sender, auto& sender, stream::error_code e = 0)
+void test_async_write_submit(auto& mock_sender, auto& sender,
+                             stream::error_code e = 0)
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
         write_token t;
         ALLOW_CALL(mock_sender, submit(ANY(write_token)))
             .LR_SIDE_EFFECT(t = _1;);
-        write_callback_mock callback_mock;
-        error_callback_mock error_mock;
+        write_callback_mock  callback_mock;
+        error_callback_mock  error_mock;
         cancel_callback_mock cancel_mock;
 
         sender.submit(write_token{error_mock, cancel_mock, callback_mock});
 
         WHEN("The callback is invoked.")
         {
-        	if(e == 0)
-        	{
-	            REQUIRE_CALL(callback_mock, call());
-	            t.done();
+            if(e == 0)
+            {
+                REQUIRE_CALL(callback_mock, call());
+                t.done();
             }
             else
             {
-	            REQUIRE_CALL(error_mock, call(e));
-	            t.error(e);
+                REQUIRE_CALL(error_mock, call(e));
+                t.error(e);
             }
         }
     }
 }
 
 void test_async_range_submit(auto& mock_sender, auto& sender,
-                             std::size_t produced_size,
-                             std::size_t expected_size,
-                             stream::error_code e = 0)
+                             test_pair<std::size_t, std::size_t> size,
+                             stream::error_code                  e = 0)
 {
     WHEN("Asynchronous submit is called.")
     {
         completion_token t;
         ALLOW_CALL(mock_sender, submit(ANY(completion_token)))
             .LR_SIDE_EFFECT(t = _1);
-        range_callback_mock callback_mock;
-        error_callback_mock error_mock;
+        range_callback_mock  callback_mock;
+        error_callback_mock  error_mock;
         cancel_callback_mock cancel_mock;
 
-        sender.submit(completion_token{error_mock, cancel_mock,
-        							   callback_mock});
+        sender.submit(completion_token{error_mock, cancel_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
-        	if(e == 0)
-        	{
-	            REQUIRE_CALL(callback_mock, call(expected_size));
-	            t.done(produced_size);
-	        }
-	        else
-	        {
-	        	REQUIRE_CALL(error_mock, call(e));
-	        	t.error(e);
-	        }
+            if(e == 0)
+            {
+                REQUIRE_CALL(callback_mock, call(size.expected_));
+                t.done(size.produced_);
+            }
+            else
+            {
+                REQUIRE_CALL(error_mock, call(e));
+                t.error(e);
+            }
         }
     }
 }
 
-template<typename T>
-void test_async_read_submit(auto& mock_sender, auto& sender, auto produced,
-  							T expected, stream::error_code e = 0)
+template<class P, class E>
+void test_async_read_submit(auto& mock_sender, auto& sender, test_pair<P, E> p,
+                            stream::error_code e = 0)
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
-        read_token<T> t;
-        ALLOW_CALL(mock_sender, submit(ANY(read_token<T>)))
+        read_token<E> t;
+        ALLOW_CALL(mock_sender, submit(ANY(read_token<E>)))
             .LR_SIDE_EFFECT(t = _1);
-        read_callback_mock callback_mock;
-        error_callback_mock error_mock;
+        read_callback_mock   callback_mock;
+        error_callback_mock  error_mock;
         cancel_callback_mock cancel_mock;
 
-        sender.submit(read_token<int>{error_mock, cancel_mock, callback_mock});
+        sender.submit(read_token<E>{error_mock, cancel_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
-        	if(e == 0)
-        	{
-	            REQUIRE_CALL(callback_mock, call(expected));
-	            t.done(produced);
-	        }
-	        else
-	        {
-	        	REQUIRE_CALL(error_mock, call(e));
-	        	t.error(e);
-	        }
+            if(e == 0)
+            {
+                REQUIRE_CALL(callback_mock, call(p.expected_));
+                t.done(p.produced_);
+            }
+            else
+            {
+                REQUIRE_CALL(error_mock, call(e));
+                t.error(e);
+            }
         }
     }
 }
-}
+} // namespace stream
 
 #endif /* TESTS_HELPERS_SUBMIT_TESTER_HPP_ */

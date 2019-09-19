@@ -55,8 +55,9 @@ SCENARIO("Transformations with single values.")
             auto sender = s.write(a);
 
             test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, 2, 2);
-            test_async_range_submit(writer.range_sender_, sender, 2, 2, 1);
+            test_async_range_submit(writer.range_sender_, sender, {2, 2});
+            test_async_range_submit(writer.range_sender_, sender, {2, 2},
+                                    dummy_error);
         }
 
         WHEN("[0, 1, 2] is generated and written.")
@@ -65,8 +66,9 @@ SCENARIO("Transformations with single values.")
             auto sender = s.write(ranges::view::iota(0, 3));
 
             test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, 3, 3);
-            test_async_range_submit(writer.range_sender_, sender, 3, 3, 1);
+            test_async_range_submit(writer.range_sender_, sender, {3, 3});
+            test_async_range_submit(writer.range_sender_, sender, {3, 3},
+                                    dummy_error);
         }
     }
 
@@ -80,9 +82,10 @@ SCENARIO("Transformations with single values.")
             REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
             auto sender = s.read();
 
-            test_sync_read_submit(reader.sender_, sender, 1, 2);
-            test_async_read_submit(reader.sender_, sender, 1, 2);
-            test_async_read_submit(reader.sender_, sender, 1, 2, 1);
+            test_sync_read_submit(reader.sender_, sender, test_pair{1, 2});
+            test_async_read_submit(reader.sender_, sender, test_pair{1, 2});
+            test_async_read_submit(reader.sender_, sender, test_pair{1, 2},
+                                   dummy_error);
         }
 
         WHEN("A range is read.")
@@ -93,8 +96,10 @@ SCENARIO("Transformations with single values.")
             REQUIRE_THAT(a, Equals(array{2, 3}));
 
             test_sync_submit(reader.range_sender_, sender);
-            test_async_range_submit(reader.range_sender_, sender, 2, 2);
-            test_async_range_submit(reader.range_sender_, sender, 2, 2, 1);
+            test_async_range_submit(reader.range_sender_, sender,
+                                    test_pair{2, 2});
+            test_async_range_submit(reader.range_sender_, sender,
+                                    test_pair{2, 2}, dummy_error);
         }
     }
 
@@ -115,9 +120,12 @@ SCENARIO("Transformations with single values.")
 
                 WHEN("The operation is not cancelled.")
                 {
-                    test_sync_read_submit(readwriter.sender_, sender, 1, 2);
-                    test_async_read_submit(readwriter.sender_, sender, 1, 2);
-                    test_async_read_submit(readwriter.sender_, sender, 1, 2, 1);
+                    test_sync_read_submit(readwriter.sender_, sender,
+                                          test_pair{1, 2});
+                    test_async_read_submit(readwriter.sender_, sender,
+                                           test_pair{1, 2});
+                    test_async_read_submit(readwriter.sender_, sender,
+                                           test_pair{1, 2}, dummy_error);
                 }
             }
 
@@ -133,10 +141,10 @@ SCENARIO("Transformations with single values.")
                 WHEN("The operation is not cancelled.")
                 {
                     test_sync_submit(readwriter.range_sender_, sender);
-                    test_async_range_submit(readwriter.range_sender_, sender, 2,
-                                            2);
-                    test_async_range_submit(readwriter.range_sender_, sender, 2,
-                                            2, 1);
+                    test_async_range_submit(readwriter.range_sender_, sender,
+                                            {2, 2});
+                    test_async_range_submit(readwriter.range_sender_, sender,
+                                            {2, 2}, dummy_error);
                 }
             }
         }
@@ -154,9 +162,12 @@ SCENARIO("Transformations with single values.")
 
                 WHEN("The operation is not cancelled.")
                 {
-                    test_sync_read_submit(readwriter.sender_, sender, 1, 1);
-                    test_async_read_submit(readwriter.sender_, sender, 1, 1);
-                    test_async_read_submit(readwriter.sender_, sender, 1, 1, 1);
+                    test_sync_read_submit(readwriter.sender_, sender,
+                                          test_pair{1, 1});
+                    test_async_read_submit(readwriter.sender_, sender,
+                                           test_pair{1, 1});
+                    test_async_read_submit(readwriter.sender_, sender,
+                                           test_pair{1, 1}, dummy_error);
                 }
             }
 
@@ -172,10 +183,10 @@ SCENARIO("Transformations with single values.")
                 WHEN("The operation is not cancelled.")
                 {
                     test_sync_submit(readwriter.range_sender_, sender);
-                    test_async_range_submit(readwriter.range_sender_, sender, 2,
-                                            2);
-                    test_async_range_submit(readwriter.range_sender_, sender, 2,
-                                            2, 1);
+                    test_async_range_submit(readwriter.range_sender_, sender,
+                                            {2, 2});
+                    test_async_range_submit(readwriter.range_sender_, sender,
+                                            {2, 2}, dummy_error);
                 }
             }
         }
@@ -206,7 +217,8 @@ SCENARIO("Change the value type.")
         REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
         auto sender = s.read();
 
-        test_sync_read_submit(reader.sender_, sender, 2, std::complex{2, 3});
+        test_sync_read_submit(reader.sender_, sender,
+                              test_pair{2, std::complex{2, 3}});
     }
 }
 
