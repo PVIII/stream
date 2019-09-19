@@ -9,7 +9,7 @@
 #define LIBSTREAM_ACTION_HPP_
 
 #include <libstream/callback.hpp>
-#include <libstream/pipe.hpp>
+#include <libstream/concepts/pipe.hpp>
 
 #include <experimental/ranges/range>
 

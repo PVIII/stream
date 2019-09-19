@@ -5,7 +5,7 @@
  * @link      github.com/PVIII/stream
  */
 
-#include <libstream/pipe.hpp>
+#include <libstream/concepts/pipe.hpp>
 
 #include <libstream/action.hpp>
 #include <libstream/transform.hpp>

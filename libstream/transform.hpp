@@ -10,7 +10,7 @@
 
 #include <liboutput_view/transform.hpp>
 #include <libstream/callback.hpp>
-#include <libstream/pipe.hpp>
+#include <libstream/concepts/pipe.hpp>
 
 #include <experimental/ranges/range>
 

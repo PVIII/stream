@@ -8,7 +8,7 @@
 #ifndef LIBSTREAM_PIPE_HPP_
 #define LIBSTREAM_PIPE_HPP_
 
-#include <libstream/stream.hpp>
+#include <libstream/concepts/stream.hpp>
 
 #include <utility>
 
