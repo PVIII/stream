@@ -17,35 +17,34 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
+namespace detail
+{
+template<class C, class S> struct context
+{
+    C  child_;
+    S& stream_;
+
+    context(C&& c, S& s) : child_(std::forward<C>(c)), stream_(s) {}
+
+    template<class T> void submit(T&& token)
+    {
+        stream_.pre_();
+        child_.submit(std::forward<T>(token));
+    }
+
+    auto submit()
+    {
+        stream_.pre_();
+        return child_.submit();
+    }
+
+    void cancel() { child_.cancel(); }
+};
+template<class C, class S> context(C&&, S&)->context<C, S>;
+} // namespace detail
+
 template<Streamable S, ranges::RegularInvocable Pre> class action_fn
 {
-  public:
-    template<class C> struct context
-    {
-        C                        child_;
-        const action_fn<S, Pre>& stream_;
-
-        context(C&& c, const action_fn<S, Pre>& s)
-            : child_(std::forward<C>(c)), stream_(s)
-        {
-        }
-
-        template<class T> void submit(T&& token)
-        {
-            stream_.pre_();
-            child_.submit(std::forward<T>(token));
-        }
-
-        auto submit()
-        {
-            stream_.pre_();
-            return child_.submit();
-        }
-
-        void cancel() { child_.cancel(); }
-    };
-
-  private:
     S   stream_;
     Pre pre_;
 
@@ -57,41 +56,36 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
 
     auto read() const requires PureReadStreamable<S>
     {
-        return context<decltype(stream_.read())>{stream_.read(), *this};
+        return detail::context{stream_.read(), *this};
     }
 
     template<ranges::Range R>
     auto read(R&& r) const requires PureReadStreamable<S>
     {
-        return context<decltype(stream_.read(std::forward<R>(r)))>{
-            stream_.read(std::forward<R>(r)), *this};
+        return detail::context{stream_.read(std::forward<R>(r)), *this};
     }
 
     template<ranges::InputRange R>
     auto write(R&& r) const requires PureWriteStreamable<S>
     {
-        return context<decltype(stream_.write(std::forward<R>(r)))>{
-            stream_.write(std::forward<R>(r)), *this};
+        return detail::context{stream_.write(std::forward<R>(r)), *this};
     }
 
     template<class V> auto write(V&& v) const requires PureWriteStreamable<S>
     {
-        return context<decltype(stream_.write(std::forward<V>(v)))>{
-            stream_.write(std::forward<V>(v)), *this};
+        return detail::context{stream_.write(std::forward<V>(v)), *this};
     }
 
     template<class V>
     auto readwrite(V&& v) const requires ReadWriteStreamable<S>
     {
-        return context<decltype(stream_.readwrite(std::forward<V>(v)))>{
-            stream_.readwrite(std::forward<V>(v)), *this};
+        return detail::context{stream_.readwrite(std::forward<V>(v)), *this};
     }
 
     template<ranges::InputRange Rin, ranges::Range Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
-        return context<decltype(stream_.readwrite(std::forward<Rin>(rin),
-                                                  std::forward<Rout>(rout)))>{
+        return detail::context{
             stream_.readwrite(std::forward<Rin>(rin), std::forward<Rout>(rout)),
             *this};
     }
