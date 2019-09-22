@@ -11,6 +11,7 @@
 #include <libstream/transform.hpp>
 
 #include <tests/helpers/submit_tester.hpp>
+#include <tests/mocks/action.hpp>
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
@@ -18,12 +19,6 @@
 
 using namespace stream;
 using trompeloeil::_;
-
-struct action_mock
-{
-    void operator()() const { return call(); }
-    MAKE_CONST_MOCK0(call, void());
-};
 
 SCENARIO("Piping without stream.")
 {

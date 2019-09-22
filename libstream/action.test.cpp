@@ -10,6 +10,7 @@
 #include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/helpers/submit_tester.hpp>
+#include <tests/mocks/action.hpp>
 #include <tests/mocks/callback.hpp>
 #include <tests/mocks/readstream.hpp>
 #include <tests/mocks/readwritestream.hpp>
@@ -27,12 +28,6 @@ using namespace stream;
 using namespace std;
 namespace ranges = std::experimental::ranges;
 using trompeloeil::_;
-
-struct action_mock
-{
-    void operator()() const { return call(); }
-    MAKE_CONST_MOCK0(call, void());
-};
 
 SCENARIO("Simple actions.")
 {
