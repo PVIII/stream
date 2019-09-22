@@ -5,8 +5,8 @@
  * @link      github.com/PVIII/stream
  */
 
-#ifndef LIBSTREAM_PIPE_HPP_
-#define LIBSTREAM_PIPE_HPP_
+#ifndef LIBSTREAM_CONCEPTS_PIPE_HPP_
+#define LIBSTREAM_CONCEPTS_PIPE_HPP_
 
 #include <libstream/concepts/stream.hpp>
 
@@ -56,4 +56,4 @@ template<Pipeable P1, Pipeable P2> Pipeable operator|(P1&& p1, P2&& p2)
 
 } // namespace stream
 
-#endif // LIBSTREAM_PIPE_HPP_
+#endif // LIBSTREAM_CONCEPTS_PIPE_HPP_

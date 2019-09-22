@@ -5,8 +5,8 @@
  * @link      github.com/PVIII/stream
  */
 
-#ifndef STREAM_HPP_
-#define STREAM_HPP_
+#ifndef LIBSTREAM_CONCEPTS_STREAM_HPP_
+#define LIBSTREAM_CONCEPTS_STREAM_HPP_
 
 #include <type_traits>
 
@@ -38,4 +38,4 @@ concept bool Streamable =
 
 } // namespace stream
 
-#endif // STREAM_HPP_
+#endif // LIBSTREAM_CONCEPTS_STREAM_HPP_
