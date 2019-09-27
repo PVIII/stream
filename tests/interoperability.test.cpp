@@ -34,12 +34,13 @@ SCENARIO("Actions and transformations.")
         WHEN("Single value write is called")
         {
             REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+            REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
+
             auto sender = s2.write(1);
-            ALLOW_CALL(closure, call());
 
             WHEN("The operation is not cancelled.")
             {
-                REQUIRE_CALL(closure, call());
+                REQUIRE_CALL(closure.sender_, submit());
 
                 test_sync_submit(writer.sender_, sender);
                 test_async_write_submit(writer.sender_, sender);
@@ -50,13 +51,14 @@ SCENARIO("Actions and transformations.")
         WHEN("Range write is called")
         {
             REQUIRE_CALL(writer, write_(vector{2, 3}));
+            REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
+
             auto a      = array{1, 2};
             auto sender = s2.write(a);
-            ALLOW_CALL(closure, call());
 
             WHEN("The operation is not cancelled.")
             {
-                REQUIRE_CALL(closure, call());
+                REQUIRE_CALL(closure.sender_, submit());
 
                 test_sync_submit(writer.range_sender_, sender);
                 test_async_range_submit(writer.range_sender_, sender, {2, 2});
@@ -76,12 +78,13 @@ SCENARIO("Actions and transformations.")
         WHEN("Single read is called")
         {
             REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
+            REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
+
             auto sender = s2.read();
-            ALLOW_CALL(closure, call());
 
             WHEN("The operation is not cancelled.")
             {
-                REQUIRE_CALL(closure, call());
+                REQUIRE_CALL(closure.sender_, submit());
 
                 test_sync_read_submit(reader.sender_, sender, test_pair{1, 2});
                 test_async_read_submit(reader.sender_, sender, test_pair{1, 2});
@@ -93,15 +96,15 @@ SCENARIO("Actions and transformations.")
         WHEN("A range is read.")
         {
             REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1, 2});
-            array<int, 2> a;
+            REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
 
+            array<int, 2> a;
             auto sender = s2.read(a);
             REQUIRE_THAT(a, Equals(array{2, 3}));
-            ALLOW_CALL(closure, call());
 
             WHEN("The operation is not cancelled.")
             {
-                REQUIRE_CALL(closure, call());
+                REQUIRE_CALL(closure.sender_, submit());
 
                 test_sync_submit(reader.range_sender_, sender);
                 test_async_range_submit(reader.range_sender_, sender, {2, 2});
@@ -124,14 +127,17 @@ SCENARIO("Cancelling operations.")
         WHEN("Single value write is called.")
         {
             REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+            REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
+
             auto sender = s2.write(1);
-            ALLOW_CALL(closure, call());
 
             WHEN("The operation is cancelled.")
             {
                 write_token t;
                 ALLOW_CALL(writer.sender_, submit(ANY(write_token)))
                     .LR_SIDE_EFFECT(t = _1;);
+                REQUIRE_CALL(closure.sender_, submit());
+
                 cancel_callback_mock cancel_mock;
 
                 sender.submit(write_token{error_callback_mock{}, cancel_mock,
@@ -157,8 +163,10 @@ SCENARIO("Pipe interoperability.")
     WHEN("Single write is called")
     {
         REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+        REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
+        REQUIRE_CALL(closure.sender_, submit());
+
         auto sender = s.write(1);
-        REQUIRE_CALL(closure, call());
 
         test_sync_submit(writer.sender_, sender);
     }

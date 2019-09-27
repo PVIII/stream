@@ -40,8 +40,10 @@ SCENARIO("Piping without stream.")
                 WHEN("Single write is called")
                 {
                     REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
+                    REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
+                    REQUIRE_CALL(closure.sender_, submit());
+
                     auto sender = s.write(1);
-                    REQUIRE_CALL(closure, call());
 
                     test_sync_submit(writer.sender_, sender);
                 }
@@ -69,8 +71,12 @@ SCENARIO("Piping without stream.")
                         {
                             REQUIRE_CALL(writer, write(3))
                                 .LR_RETURN(writer.sender_);
+                            REQUIRE_CALL(closure, call())
+                                .LR_RETURN(closure.sender_)
+                                .TIMES(2);
+                            REQUIRE_CALL(closure.sender_, submit()).TIMES(2);
+
                             auto sender = s.write(1);
-                            REQUIRE_CALL(closure, call()).TIMES(2);
 
                             test_sync_submit(writer.sender_, sender);
                         }
@@ -90,8 +96,12 @@ SCENARIO("Piping without stream.")
                     {
                         REQUIRE_CALL(writer, write(3))
                             .LR_RETURN(writer.sender_);
+                        REQUIRE_CALL(closure, call())
+                            .LR_RETURN(closure.sender_)
+                            .TIMES(2);
+                        REQUIRE_CALL(closure.sender_, submit()).TIMES(2);
+
                         auto sender = s.write(1);
-                        REQUIRE_CALL(closure, call()).TIMES(2);
 
                         test_sync_submit(writer.sender_, sender);
                     }

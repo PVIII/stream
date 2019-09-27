@@ -9,6 +9,7 @@
 #define LIBSTREAM_ACTION_HPP_
 
 #include <libstream/callback.hpp>
+#include <libstream/concepts/executor.hpp>
 #include <libstream/concepts/pipe.hpp>
 
 #include <experimental/ranges/range>
@@ -19,31 +20,36 @@ namespace stream
 {
 namespace detail
 {
-template<class C, class S> struct context
+template<class Pre, class Child, class Stream> struct context
 {
-    C  child_;
-    S& stream_;
+    Pre           pre_;
+    Child         child_;
+    const Stream& stream_;
 
-    context(C&& c, S& s) : child_(std::forward<C>(c)), stream_(s) {}
+    context(Pre&& p, Child&& c, const Stream& s)
+        : pre_(std::forward<Pre>(p)), child_(std::forward<Child>(c)), stream_(s)
+    {
+    }
 
     template<class T> void submit(T&& token)
     {
-        stream_.pre_();
+        pre_.submit();
         child_.submit(std::forward<T>(token));
     }
 
     auto submit()
     {
-        stream_.pre_();
+        pre_.submit();
         return child_.submit();
     }
 
     void cancel() { child_.cancel(); }
 };
-template<class C, class S> context(C&&, S&)->context<C, S>;
+
+template<class P, class C, class S> context(P&&, C&&, S &&)->context<P, C, S>;
 } // namespace detail
 
-template<Streamable S, ranges::RegularInvocable Pre> class action_fn
+template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
 {
     S   stream_;
     Pre pre_;
@@ -56,36 +62,40 @@ template<Streamable S, ranges::RegularInvocable Pre> class action_fn
 
     auto read() const requires PureReadStreamable<S>
     {
-        return detail::context{stream_.read(), *this};
+        return detail::context{pre_(), stream_.read(), *this};
     }
 
     template<ranges::Range R>
     auto read(R&& r) const requires PureReadStreamable<S>
     {
-        return detail::context{stream_.read(std::forward<R>(r)), *this};
+        return detail::context{pre_(), stream_.read(std::forward<R>(r)), *this};
     }
 
     template<ranges::InputRange R>
     auto write(R&& r) const requires PureWriteStreamable<S>
     {
-        return detail::context{stream_.write(std::forward<R>(r)), *this};
+        return detail::context{pre_(), stream_.write(std::forward<R>(r)),
+                               *this};
     }
 
     template<class V> auto write(V&& v) const requires PureWriteStreamable<S>
     {
-        return detail::context{stream_.write(std::forward<V>(v)), *this};
+        return detail::context{pre_(), stream_.write(std::forward<V>(v)),
+                               *this};
     }
 
     template<class V>
     auto readwrite(V&& v) const requires ReadWriteStreamable<S>
     {
-        return detail::context{stream_.readwrite(std::forward<V>(v)), *this};
+        return detail::context{pre_(), stream_.readwrite(std::forward<V>(v)),
+                               *this};
     }
 
     template<ranges::InputRange Rin, ranges::Range Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
         return detail::context{
+            pre_(),
             stream_.readwrite(std::forward<Rin>(rin), std::forward<Rout>(rout)),
             *this};
     }

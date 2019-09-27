@@ -15,8 +15,14 @@ namespace stream
 {
 struct action_mock
 {
-    void operator()() const { return call(); }
-    MAKE_CONST_MOCK0(call, void());
+    struct sender
+    {
+        MAKE_MOCK0(submit, void());
+    };
+    sender sender_;
+
+    sender& operator()() const { return call(); }
+    MAKE_CONST_MOCK0(call, sender&());
 };
 }
 
