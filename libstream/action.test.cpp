@@ -46,6 +46,7 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
                 auto sender = s.write(2);
 
+                WHEN("Nothing is submitted.") {}
                 WHEN("The operation is not cancelled.")
                 {
                     REQUIRE_CALL(closure.sender_, submit());
@@ -62,6 +63,7 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
                 auto sender = s.write(array{2, 3});
 
+                WHEN("Nothing is submitted.") {}
                 WHEN("The operation is not cancelled.")
                 {
                     REQUIRE_CALL(closure.sender_, submit());
@@ -80,6 +82,7 @@ SCENARIO("Simple actions.")
                 REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
                 auto sender = s.write(ranges::view::iota(0, 3));
 
+                WHEN("Nothing is submitted.") {}
                 WHEN("The operation is not cancelled.")
                 {
                     REQUIRE_CALL(closure.sender_, submit());
@@ -89,29 +92,6 @@ SCENARIO("Simple actions.")
                                             {3, 3});
                     test_async_range_submit(writer.range_sender_, sender,
                                             {3, 3}, dummy_error);
-                }
-            }
-        }
-
-        GIVEN("A synchronous executor action.")
-        {
-            action_mock closure;
-            auto        s = action(writer, closure);
-
-            WHEN("Single value write is called.")
-            {
-                REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
-                REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
-                auto sender = s.write(2);
-
-                WHEN("Nothing is submitted.") {}
-                WHEN("The operation is not cancelled.")
-                {
-                    REQUIRE_CALL(closure.sender_, submit());
-                    test_sync_submit(writer.sender_, sender);
-                    test_async_write_submit(writer.sender_, sender);
-                    test_async_write_submit(writer.sender_, sender,
-                                            dummy_error);
                 }
             }
         }
@@ -129,6 +109,7 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
             auto sender = s.read();
 
+            WHEN("Nothing is submitted.") {}
             WHEN("The operation is not cancelled.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
@@ -148,6 +129,7 @@ SCENARIO("Simple actions.")
             auto  sender = s.read(a);
             REQUIRE_THAT(a, Equals(array{2, 3}));
 
+            WHEN("Nothing is submitted.") {}
             WHEN("The operation is not cancelled.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
@@ -174,6 +156,7 @@ SCENARIO("Simple actions.")
             REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
             auto sender = s.readwrite(1);
 
+            WHEN("Nothing is submitted.") {}
             WHEN("The operation is not cancelled.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
@@ -196,6 +179,7 @@ SCENARIO("Simple actions.")
             auto  sender = s.readwrite(array{2, 3}, a);
             REQUIRE_THAT(a, Equals(array{4, 5}));
 
+            WHEN("Nothing is submitted.") {}
             WHEN("The operation is not cancelled.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
