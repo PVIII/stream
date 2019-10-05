@@ -38,7 +38,7 @@ void test_sync_submit(auto& mock_sender, auto& sender)
 {
     WHEN("Synchronous submit is called on the sender.")
     {
-        ALLOW_CALL(mock_sender, submit());
+        REQUIRE_CALL(mock_sender, submit());
         sender.submit();
     }
 }
@@ -48,7 +48,7 @@ void test_sync_read_submit(auto& mock_sender, auto& sender, test_pair<P, E> p)
 {
     WHEN("Synchronous submit is called on the sender.")
     {
-        ALLOW_CALL(mock_sender, submit()).RETURN(p.produced_);
+        REQUIRE_CALL(mock_sender, submit()).RETURN(p.produced_);
         REQUIRE(sender.submit() == p.expected_);
     }
 }
@@ -59,7 +59,7 @@ void test_async_write_submit(auto& mock_sender, auto& sender,
     WHEN("Asynchronous submit is called on the sender.")
     {
         write_token t;
-        ALLOW_CALL(mock_sender, submit(ANY(write_token)))
+        REQUIRE_CALL(mock_sender, submit(ANY(write_token)))
             .LR_SIDE_EFFECT(t = _1;);
         write_callback_mock  callback_mock;
         error_callback_mock  error_mock;
@@ -90,7 +90,7 @@ void test_async_range_submit(auto& mock_sender, auto& sender,
     WHEN("Asynchronous submit is called.")
     {
         completion_token t;
-        ALLOW_CALL(mock_sender, submit(ANY(completion_token)))
+        REQUIRE_CALL(mock_sender, submit(ANY(completion_token)))
             .LR_SIDE_EFFECT(t = _1);
         range_callback_mock  callback_mock;
         error_callback_mock  error_mock;
@@ -121,7 +121,7 @@ void test_async_read_submit(auto& mock_sender, auto& sender, test_pair<P, E> p,
     WHEN("Asynchronous submit is called on the sender.")
     {
         read_token<E> t;
-        ALLOW_CALL(mock_sender, submit(ANY(read_token<E>)))
+        REQUIRE_CALL(mock_sender, submit(ANY(read_token<E>)))
             .LR_SIDE_EFFECT(t = _1);
         read_callback_mock   callback_mock;
         error_callback_mock  error_mock;
