@@ -35,16 +35,50 @@ SCENARIO("Actions and transformations.")
         {
             REQUIRE_CALL(writer, write(2)).LR_RETURN(writer.sender_);
             REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
-
             auto sender = s2.write(1);
 
-            WHEN("The operation is not cancelled.")
+            WHEN("Nothing is submitted.") {}
+            WHEN("Synchronous submit.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
-
                 test_sync_submit(writer.sender_, sender);
-                test_async_write_submit(writer.sender_, sender);
-                test_async_write_submit(writer.sender_, sender, 1);
+            }
+            WHEN("Asynchronous submit.")
+            {
+                token<> closure_token;
+                REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
+                    .LR_SIDE_EFFECT(closure_token = _1;);
+
+                write_callback_mock  callback_mock;
+                error_callback_mock  error_mock;
+                cancel_callback_mock cancel_mock;
+                sender.submit(
+                    write_token{error_mock, cancel_mock, callback_mock});
+
+                WHEN("The action callback is invoked.")
+                {
+                    write_token writer_token;
+                    REQUIRE_CALL(writer.sender_, submit(ANY(write_token)))
+                        .LR_SIDE_EFFECT(writer_token = _1;);
+                    closure_token.done();
+
+                    WHEN("The writer callback is invoked.")
+                    {
+                        REQUIRE_CALL(callback_mock, call());
+                        writer_token.done();
+                    }
+
+                    WHEN("The writer error callback is invoked.")
+                    {
+                        REQUIRE_CALL(error_mock, call(dummy_error));
+                        writer_token.error(dummy_error);
+                    }
+                }
+                WHEN("The action error callback is invoked.")
+                {
+                    REQUIRE_CALL(error_mock, call(dummy_error));
+                    closure_token.error(dummy_error);
+                }
             }
         }
 
@@ -53,17 +87,52 @@ SCENARIO("Actions and transformations.")
             REQUIRE_CALL(writer, write_(vector{2, 3}));
             REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
 
-            auto a      = array{1, 2};
-            auto sender = s2.write(a);
+            array a{1, 2};
+            auto  sender = s2.write(a);
 
-            WHEN("The operation is not cancelled.")
+            WHEN("Nothing is submitted.") {}
+            WHEN("Synchronous submit.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
-
                 test_sync_submit(writer.range_sender_, sender);
-                test_async_range_submit(writer.range_sender_, sender, {2, 2});
-                test_async_range_submit(writer.range_sender_, sender, {2, 2},
-                                        dummy_error);
+            }
+            WHEN("Asynchronous submit.")
+            {
+                token<> closure_token;
+                REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
+                    .LR_SIDE_EFFECT(closure_token = _1;);
+
+                range_callback_mock  callback_mock;
+                error_callback_mock  error_mock;
+                cancel_callback_mock cancel_mock;
+                sender.submit(
+                    completion_token{error_mock, cancel_mock, callback_mock});
+
+                WHEN("The action callback is invoked.")
+                {
+                    completion_token writer_token;
+                    REQUIRE_CALL(writer.range_sender_,
+                                 submit(ANY(completion_token)))
+                        .LR_SIDE_EFFECT(writer_token = _1;);
+                    closure_token.done();
+
+                    WHEN("The writer callback is invoked.")
+                    {
+                        REQUIRE_CALL(callback_mock, call(2));
+                        writer_token.done(2);
+                    }
+
+                    WHEN("The writer error callback is invoked.")
+                    {
+                        REQUIRE_CALL(error_mock, call(dummy_error));
+                        writer_token.error(dummy_error);
+                    }
+                }
+                WHEN("The action error callback is invoked.")
+                {
+                    REQUIRE_CALL(error_mock, call(dummy_error));
+                    closure_token.error(dummy_error);
+                }
             }
         }
     }
@@ -79,17 +148,50 @@ SCENARIO("Actions and transformations.")
         {
             REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
             REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
-
             auto sender = s2.read();
 
-            WHEN("The operation is not cancelled.")
+            WHEN("Nothing is submitted.") {}
+            WHEN("Synchronous submit.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
-
                 test_sync_read_submit(reader.sender_, sender, test_pair{1, 2});
-                test_async_read_submit(reader.sender_, sender, test_pair{1, 2});
-                test_async_read_submit(reader.sender_, sender, test_pair{1, 2},
-                                       dummy_error);
+            }
+            WHEN("Asynchronous submit.")
+            {
+                token<> closure_token;
+                REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
+                    .LR_SIDE_EFFECT(closure_token = _1;);
+
+                read_callback_mock   callback_mock;
+                error_callback_mock  error_mock;
+                cancel_callback_mock cancel_mock;
+                sender.submit(
+                    read_token<int>{error_mock, cancel_mock, callback_mock});
+
+                WHEN("The action callback is invoked.")
+                {
+                    read_token<int> reader_token;
+                    REQUIRE_CALL(reader.sender_, submit(ANY(read_token<int>)))
+                        .LR_SIDE_EFFECT(reader_token = _1;);
+                    closure_token.done();
+
+                    WHEN("The reader callback is invoked.")
+                    {
+                        REQUIRE_CALL(callback_mock, call(2));
+                        reader_token.done(1);
+                    }
+
+                    WHEN("The reader error callback is invoked.")
+                    {
+                        REQUIRE_CALL(error_mock, call(dummy_error));
+                        reader_token.error(dummy_error);
+                    }
+                }
+                WHEN("The action error callback is invoked.")
+                {
+                    REQUIRE_CALL(error_mock, call(dummy_error));
+                    closure_token.error(dummy_error);
+                }
             }
         }
 
@@ -99,17 +201,52 @@ SCENARIO("Actions and transformations.")
             REQUIRE_CALL(closure, call()).LR_RETURN(closure.sender_);
 
             array<int, 2> a;
-            auto sender = s2.read(a);
+            auto          sender = s2.read(a);
             REQUIRE_THAT(a, Equals(array{2, 3}));
 
-            WHEN("The operation is not cancelled.")
+            WHEN("Nothing is submitted.") {}
+            WHEN("Synchronous submit.")
             {
                 REQUIRE_CALL(closure.sender_, submit());
-
                 test_sync_submit(reader.range_sender_, sender);
-                test_async_range_submit(reader.range_sender_, sender, {2, 2});
-                test_async_range_submit(reader.range_sender_, sender, {2, 2},
-                                        dummy_error);
+            }
+            WHEN("Asynchronous submit.")
+            {
+                token<> closure_token;
+                REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
+                    .LR_SIDE_EFFECT(closure_token = _1;);
+
+                range_callback_mock  callback_mock;
+                error_callback_mock  error_mock;
+                cancel_callback_mock cancel_mock;
+                sender.submit(
+                    completion_token{error_mock, cancel_mock, callback_mock});
+
+                WHEN("The action callback is invoked.")
+                {
+                    completion_token reader_token;
+                    REQUIRE_CALL(reader.range_sender_,
+                                 submit(ANY(completion_token)))
+                        .LR_SIDE_EFFECT(reader_token = _1;);
+                    closure_token.done();
+
+                    WHEN("The reader callback is invoked.")
+                    {
+                        REQUIRE_CALL(callback_mock, call(2));
+                        reader_token.done(2);
+                    }
+
+                    WHEN("The writer error callback is invoked.")
+                    {
+                        REQUIRE_CALL(error_mock, call(dummy_error));
+                        reader_token.error(dummy_error);
+                    }
+                }
+                WHEN("The action error callback is invoked.")
+                {
+                    REQUIRE_CALL(error_mock, call(dummy_error));
+                    closure_token.error(dummy_error);
+                }
             }
         }
     }
@@ -131,22 +268,50 @@ SCENARIO("Cancelling operations.")
 
             auto sender = s2.write(1);
 
-            WHEN("The operation is cancelled.")
+            WHEN("Asynchronous submit.")
             {
-                write_token t;
-                ALLOW_CALL(writer.sender_, submit(ANY(write_token)))
-                    .LR_SIDE_EFFECT(t = _1;);
-                REQUIRE_CALL(closure.sender_, submit());
+                token<> closure_token;
+                REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
+                    .LR_SIDE_EFFECT(closure_token = _1;);
 
+                write_callback_mock  callback_mock;
+                error_callback_mock  error_mock;
                 cancel_callback_mock cancel_mock;
+                sender.submit(
+                    write_token{error_mock, cancel_mock, callback_mock});
 
-                sender.submit(write_token{error_callback_mock{}, cancel_mock,
-                                          write_callback_mock{}});
-                REQUIRE_CALL(writer.sender_, cancel());
-                sender.cancel();
+                WHEN("The action callback is invoked")
+                {
+                    write_token writer_token;
+                    REQUIRE_CALL(writer.sender_, submit(ANY(write_token)))
+                        .LR_SIDE_EFFECT(writer_token = _1;);
+                    closure_token.done();
 
-                REQUIRE_CALL(cancel_mock, call());
-                t.cancelled();
+                    WHEN("The writer is cancelled.")
+                    {
+                        REQUIRE_CALL(writer.sender_, cancel());
+                        sender.cancel();
+
+                        WHEN("The callback is not invoked.") {}
+                        WHEN("The cancel callback is invoked.")
+                        {
+                            REQUIRE_CALL(cancel_mock, call());
+                            writer_token.cancelled();
+                        }
+                    }
+                }
+                WHEN("The action is cancelled.")
+                {
+                    REQUIRE_CALL(closure.sender_, cancel());
+                    sender.cancel();
+
+                    WHEN("The callback is not invoked.") {}
+                    WHEN("The cancel callback is invoked.")
+                    {
+                        REQUIRE_CALL(cancel_mock, call());
+                        closure_token.cancelled();
+                    }
+                }
             }
         }
     }

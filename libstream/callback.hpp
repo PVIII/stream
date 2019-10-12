@@ -29,6 +29,13 @@ template<class... Ret> struct token
     SA::delegate<void(Ret...)> done;
 };
 
+template<> struct token<void>
+{
+    error_token          error;
+    cancel_token         cancelled;
+    SA::delegate<void()> done;
+};
+
 using completion_token                = token<std::size_t>;
 using write_token                     = token<>;
 template<typename T> using read_token = token<T>;
