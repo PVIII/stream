@@ -11,6 +11,7 @@
 #include <liboutput_view/transform.hpp>
 #include <libstream/callback.hpp>
 #include <libstream/concepts/pipe.hpp>
+#include <libstream/detail/context.hpp>
 
 #include <experimental/ranges/range>
 
@@ -93,24 +94,6 @@ template<class C, class S> read_context(C&& c, const S& s)->read_context<C, S>;
 
 template<WriteStreamable S, class F> class transform_write_fn
 {
-  public:
-    template<class C> struct write_context
-    {
-        C child_context_;
-
-        write_context(C&& c) : child_context_(c) {}
-
-        void submit(write_token&& t)
-        {
-            child_context_.submit(std::forward<write_token>(t));
-        }
-
-        void submit() { child_context_.submit(); }
-
-        void cancel() { child_context_.cancel(); }
-    };
-
-  private:
     S stream_;
     F func_;
 
@@ -122,8 +105,8 @@ template<WriteStreamable S, class F> class transform_write_fn
 
     template<class V> auto write(V&& v) const
     {
-        return write_context<decltype(stream_.write(func_(
-            std::forward<V>(v))))>{stream_.write(func_(std::forward<V>(v)))};
+        return detail::base_write_context{
+            stream_.write(func_(std::forward<V>(v)))};
     }
 
     template<ranges::InputRange R> auto write(R&& r) const

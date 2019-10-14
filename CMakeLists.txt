@@ -14,10 +14,12 @@ add_library(stream INTERFACE)
 target_sources(stream INTERFACE
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/action.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/callback.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/libstream/filter.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/transform.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/concepts/executor.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/concepts/pipe.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/concepts/stream.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/libstream/detail/context.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/liboutput_view/transform.hpp)
 target_include_directories(stream INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(stream INTERFACE cxx_std_17)
