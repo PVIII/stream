@@ -9,6 +9,7 @@
 
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/helpers/submit_tester.hpp>
+#include <tests/mocks/readstream.hpp>
 #include <tests/mocks/readwritestream.hpp>
 #include <tests/mocks/writestream.hpp>
 
@@ -18,7 +19,7 @@
 using namespace stream;
 using namespace std;
 
-SCENARIO("Normal submits.")
+SCENARIO("Filter writes.")
 {
     GIVEN("A write stream that filters 0.")
     {
@@ -82,6 +83,56 @@ SCENARIO("Normal submits.")
             test_async_range_submit(readwriter.range_sender_, sender, {3, 3});
             test_async_range_submit(readwriter.range_sender_, sender, {3, 3},
                                     dummy_error);
+        }
+    }
+}
+
+SCENARIO("Filter reads.")
+{
+    GIVEN("A read stream that filters 0.")
+    {
+        read_mock reader;
+        auto s = stream::filter_read(reader, [](auto v) { return v != 0; });
+
+        WHEN("Zero is read.")
+        {
+            REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
+            auto sender = s.read();
+
+            WHEN("Synchronous submit is called.")
+            {
+                int i = 0;
+                REQUIRE_CALL(reader.sender_, submit())
+                    .LR_RETURN(i)
+                    .LR_SIDE_EFFECT(++i);
+                REQUIRE_CALL(reader.sender_, submit()).LR_RETURN(i);
+                sender.submit();
+            }
+            WHEN("Asynchronous submit is called.")
+            {
+                read_token<int> t;
+                REQUIRE_CALL(reader.sender_, submit(ANY(read_token<int>)))
+                    .LR_SIDE_EFFECT(t = _1);
+                read_callback_mock   callback_mock;
+                error_callback_mock  error_mock;
+                cancel_callback_mock cancel_mock;
+
+                sender.submit(
+                    read_token<int>{error_mock, cancel_mock, callback_mock});
+
+                WHEN("The callback is invoked with 0.")
+                {
+                    REQUIRE_CALL(reader.sender_, submit(ANY(read_token<int>)))
+                        .LR_SIDE_EFFECT(t = _1);
+                    t.done(0);
+
+                    WHEN("The callback is invoked with 1.")
+                    {
+                        REQUIRE_CALL(callback_mock, call(1));
+                        t.done(1);
+                    }
+                }
+            }
         }
     }
 }

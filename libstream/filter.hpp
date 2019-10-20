@@ -19,7 +19,7 @@ namespace stream
 {
 namespace detail
 {
-template<class C> struct filter_context
+template<class C> struct write_filter_context
 {
     bool empty_;
     union {
@@ -52,7 +52,59 @@ template<class C> struct filter_context
     }
 };
 
-template<class C> filter_context(bool, C&& c)->filter_context<C>;
+template<class C> write_filter_context(bool, C&& c)->write_filter_context<C>;
+
+template<class C, class S>
+class read_filter_context : public base_read_context<C>
+{
+    using typename base_read_context<C>::value_type;
+    using base_read_context<C>::child_;
+    S& stream_;
+
+    read_token<value_type> token_;
+
+    void submit_internal()
+    {
+        using this_t = read_filter_context<C, S>;
+        child_.submit(
+            read_token<value_type>{token_.error, token_.cancelled,
+                                   read_done_token<value_type>::template create<
+                                       this_t, &this_t::done_handler>(this)});
+    }
+
+    void done_handler(value_type v)
+    {
+        if(stream_.predicate_(v)) { token_.done(v); }
+        else
+        {
+            submit_internal();
+        }
+    }
+
+  public:
+    read_filter_context(C&& c, S& s)
+        : base_read_context<C>{std::forward<C>(c)}, stream_(s)
+    {
+    }
+
+    auto submit() noexcept
+    {
+        while(true)
+        {
+            auto result = child_.submit();
+            if(stream_.predicate_(result)) { return result; }
+        }
+    }
+
+    void submit(read_token<value_type>&& t)
+    {
+        token_ = t;
+        submit_internal();
+    }
+};
+
+template<class C, class S>
+read_filter_context(C&& c, S& s)->read_filter_context<C, S>;
 } // namespace detail
 
 template<WriteStreamable S, class P> class filter_write_fn
@@ -70,12 +122,12 @@ template<WriteStreamable S, class P> class filter_write_fn
     {
         if(predicate_(v))
         {
-            return detail::filter_context{false,
-                                          stream_.write(std::forward<V>(v))};
+            return detail::write_filter_context{
+                false, stream_.write(std::forward<V>(v))};
         }
         else
         {
-            return detail::filter_context<decltype(
+            return detail::write_filter_context<decltype(
                 stream_.write(std::forward<V>(v)))>{true, {}};
         }
     }
@@ -104,6 +156,34 @@ template<WriteStreamable S, class P>
 WriteStreamable filter_write(S&& stream, P&& p)
 {
     return filter_write_fn{std::forward<S>(stream), std::forward<P>(p)};
+}
+
+template<ReadStreamable S, class P> class filter_read_fn
+{
+    S stream_;
+    P predicate_;
+
+  public:
+    filter_read_fn(S&& stream, P&& p)
+        : stream_(std::forward<S>(stream)), predicate_(std::forward<P>(p))
+    {
+    }
+
+    auto read() const
+    {
+        return detail::read_filter_context{stream_.read(), *this};
+    }
+};
+
+template<ReadStreamable S, class P>
+filter_read_fn(S&, P &&)->filter_read_fn<S&, P>;
+template<ReadStreamable S, class P>
+filter_read_fn(S&&, P &&)->filter_read_fn<S, P>;
+
+template<ReadStreamable S, class P>
+ReadStreamable filter_read(S&& stream, P&& p)
+{
+    return filter_read_fn{std::forward<S>(stream), std::forward<P>(p)};
 }
 } // namespace stream
 
