@@ -5,8 +5,8 @@
  * @link      github.com/PVIII/stream
  */
 
-#ifndef STREAM_OUTPUT_VIEW_TRANSFORM_H
-#define STREAM_OUTPUT_VIEW_TRANSFORM_H
+#ifndef LIBOUTPUT_VIEW_TRANSFORM_HPP_
+#define LIBOUTPUT_VIEW_TRANSFORM_HPP_
 
 #include <functional>
 #include <stl2/detail/algorithm/find_if.hpp>
@@ -366,4 +366,4 @@ struct __transform_fn
 inline constexpr __transform_fn transform{};
 } // namespace output_view
 
-#endif // STREAM_OUTPUT_VIEW_TRANSFORM_H
+#endif // LIBOUTPUT_VIEW_TRANSFORM_HPP_
