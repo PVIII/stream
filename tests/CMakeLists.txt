@@ -30,17 +30,25 @@ target_compile_options(transform_test PRIVATE -fsanitize=address -fsanitize=leak
 target_link_options(transform_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 add_test(NAME transform_test COMMAND transform_test)
 
-add_executable(view_test
-               ../liboutput_view/transform.test.cpp)
-target_link_libraries(view_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
-target_compile_options(view_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
-target_compile_options(view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
-target_link_options(view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
-add_test(NAME view_test COMMAND view_test)
-
 add_executable(interoperability_test interoperability.test.cpp)
 target_link_libraries(interoperability_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
 target_compile_options(interoperability_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
 target_compile_options(interoperability_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 target_link_options(interoperability_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 add_test(NAME interoperability_test COMMAND interoperability_test)
+
+add_executable(filter_view_test
+               ../liboutput_view/filter.test.cpp)
+target_link_libraries(filter_view_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
+target_compile_options(filter_view_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
+target_compile_options(filter_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+target_link_options(filter_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+add_test(NAME filter_view_test COMMAND filter_view_test)
+
+add_executable(transform_view_test
+               ../liboutput_view/transform.test.cpp)
+target_link_libraries(transform_view_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
+target_compile_options(transform_view_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
+target_compile_options(transform_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+target_link_options(transform_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+add_test(NAME transform_view_test COMMAND transform_view_test)
