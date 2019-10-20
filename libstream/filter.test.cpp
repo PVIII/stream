@@ -47,5 +47,17 @@ SCENARIO("Normal submits.")
             test_async_write_submit(writer.sender_, sender);
             test_async_write_submit(writer.sender_, sender, 1);
         }
+
+        WHEN("A range is written.")
+        {
+            REQUIRE_CALL(writer, write_(vector{1, 2}));
+            array a{0, 1, 2, 0};
+            auto  sender = s.write(a);
+
+            test_sync_submit(writer.range_sender_, sender);
+            test_async_range_submit(writer.range_sender_, sender, {2, 2});
+            test_async_range_submit(writer.range_sender_, sender, {2, 2},
+                                    dummy_error);
+        }
     }
 }

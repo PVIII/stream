@@ -40,6 +40,23 @@ template<class C> struct base_write_context
 };
 
 template<class C> base_write_context(C &&)->base_write_context<C>;
+
+template<class C> struct base_range_context
+{
+    C child_;
+
+    void submit(completion_token&& t)
+    {
+        child_.submit(std::forward<completion_token>(t));
+    }
+
+    auto submit() { return child_.submit(); }
+
+    void cancel() { child_.cancel(); }
+};
+
+template<class C> base_range_context(C&& c)->base_range_context<C>;
+
 } // namespace detail
 } // namespace stream
 

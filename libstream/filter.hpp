@@ -79,6 +79,12 @@ template<WriteStreamable S, class P> class filter_write_fn
                 stream_.write(std::forward<V>(v)))>{true, {}};
         }
     }
+
+    template<ranges::InputRange R> auto write(R&& r) const
+    {
+        return detail::base_range_context{stream_.write(
+            ranges::view::filter(std::forward<R>(r), predicate_))};
+    }
 };
 
 template<WriteStreamable S, class P>

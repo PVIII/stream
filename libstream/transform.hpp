@@ -21,24 +21,6 @@ namespace stream
 {
 namespace detail
 {
-template<class C> struct range_context
-{
-    C child_;
-
-    range_context(C&& c) : child_(c) {}
-
-    void submit(completion_token&& t)
-    {
-        child_.submit(std::forward<completion_token>(t));
-    }
-
-    auto submit() { return child_.submit(); }
-
-    void cancel() { child_.cancel(); }
-};
-
-template<class C> range_context(C&& c)->range_context<C>;
-
 template<class C, class S> class read_context_base
 {
   protected:
@@ -111,7 +93,7 @@ template<WriteStreamable S, class F> class transform_write_fn
 
     template<ranges::InputRange R> auto write(R&& r) const
     {
-        return detail::range_context{
+        return detail::base_range_context{
             stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
     }
 
@@ -124,7 +106,7 @@ template<WriteStreamable S, class F> class transform_write_fn
     template<ranges::InputRange Rin, ranges::Range Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
-        return detail::range_context{stream_.readwrite(
+        return detail::base_range_context{stream_.readwrite(
             ranges::view::transform(std::forward<Rin>(rin), func_),
             std::forward<Rout>(rout))};
     }
@@ -149,7 +131,7 @@ template<ReadStreamable S, class F> class transform_read_fn
 
     auto read(ranges::Range&& r) const requires PureReadStreamable<S>
     {
-        return detail::range_context{
+        return detail::base_range_context{
             stream_.read(output_view::transform(r, func_))};
     }
 
@@ -163,7 +145,7 @@ template<ReadStreamable S, class F> class transform_read_fn
     template<ranges::InputRange Rin, ranges::Range Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
-        return detail::range_context{stream_.readwrite(
+        return detail::base_range_context{stream_.readwrite(
             std::forward<Rin>(rin), output_view::transform(rout, func_))};
     }
 };
