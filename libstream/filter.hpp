@@ -17,43 +17,46 @@ namespace ranges = std::experimental::ranges;
 
 namespace stream
 {
+namespace detail
+{
+template<class C> struct filter_context
+{
+    bool empty_;
+    union {
+        detail::base_write_context<C> base_context_;
+        detail::empty_write_context   empty_context_;
+    };
+    void submit(write_token&& t)
+    {
+        if(empty_) { empty_context_.submit(std::move(t)); }
+        else
+        {
+            base_context_.submit(std::forward<write_token>(t));
+        }
+    }
+    void submit() noexcept
+    {
+        if(empty_) { empty_context_.submit(); }
+        else
+        {
+            base_context_.submit();
+        }
+    }
+    void cancel() noexcept
+    {
+        if(empty_) { empty_context_.cancel(); }
+        else
+        {
+            base_context_.cancel();
+        }
+    }
+};
+
+template<class C> filter_context(bool, C&& c)->filter_context<C>;
+} // namespace detail
+
 template<WriteStreamable S, class P> class filter_write_fn
 {
-  public:
-    template<class C> struct optional_context
-    {
-        bool empty_;
-        union {
-            detail::base_write_context<C> base_context_;
-            detail::empty_write_context   empty_context_;
-        };
-        void submit(write_token&& t)
-        {
-            if(empty_) { empty_context_.submit(std::move(t)); }
-            else
-            {
-                base_context_.submit(std::forward<write_token>(t));
-            }
-        }
-        void submit() noexcept
-        {
-            if(empty_) { empty_context_.submit(); }
-            else
-            {
-                base_context_.submit();
-            }
-        }
-        void cancel() noexcept
-        {
-            if(empty_) { empty_context_.cancel(); }
-            else
-            {
-                base_context_.cancel();
-            }
-        }
-    };
-
-  private:
     S stream_;
     P predicate_;
 
@@ -67,12 +70,12 @@ template<WriteStreamable S, class P> class filter_write_fn
     {
         if(predicate_(v))
         {
-            return optional_context<decltype(stream_.write(
-                std::forward<V>(v)))>{false, stream_.write(std::forward<V>(v))};
+            return detail::filter_context{false,
+                                          stream_.write(std::forward<V>(v))};
         }
         else
         {
-            return optional_context<decltype(
+            return detail::filter_context<decltype(
                 stream_.write(std::forward<V>(v)))>{true, {}};
         }
     }
