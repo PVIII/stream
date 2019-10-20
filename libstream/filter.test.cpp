@@ -7,7 +7,9 @@
 
 #include <libstream/filter.hpp>
 
+#include <tests/helpers/range_matcher.hpp>
 #include <tests/helpers/submit_tester.hpp>
+#include <tests/mocks/readwritestream.hpp>
 #include <tests/mocks/writestream.hpp>
 
 #include <catch2/catch.hpp>
@@ -57,6 +59,28 @@ SCENARIO("Normal submits.")
             test_sync_submit(writer.range_sender_, sender);
             test_async_range_submit(writer.range_sender_, sender, {2, 2});
             test_async_range_submit(writer.range_sender_, sender, {2, 2},
+                                    dummy_error);
+        }
+    }
+
+    GIVEN("A read-write stream that filters 0.")
+    {
+        read_write_mock readwriter;
+        auto            s =
+            stream::filter_write(readwriter, [](auto v) { return v != 0; });
+
+        WHEN("A range is written.")
+        {
+            REQUIRE_CALL(readwriter, readwrite_(vector{1, 2}, _))
+                .SIDE_EFFECT(_2 = vector{0, 1});
+            array a_read{0, 0};
+            array a_write{0, 1, 2, 0};
+            auto  sender = s.readwrite(a_write, a_read);
+            REQUIRE_THAT(a_read, Equals(array{0, 1}));
+
+            test_sync_submit(readwriter.range_sender_, sender);
+            test_async_range_submit(readwriter.range_sender_, sender, {3, 3});
+            test_async_range_submit(readwriter.range_sender_, sender, {3, 3},
                                     dummy_error);
         }
     }

@@ -85,6 +85,14 @@ template<WriteStreamable S, class P> class filter_write_fn
         return detail::base_range_context{stream_.write(
             ranges::view::filter(std::forward<R>(r), predicate_))};
     }
+
+    template<ranges::InputRange Rin, ranges::Range Rout>
+    auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
+    {
+        return detail::base_range_context{stream_.readwrite(
+            ranges::view::filter(std::forward<Rin>(rin), predicate_),
+            std::forward<Rout>(rout))};
+    }
 };
 
 template<WriteStreamable S, class P>
