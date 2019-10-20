@@ -21,42 +21,21 @@ namespace stream
 {
 namespace detail
 {
-template<class C, class S> class read_context_base
+template<class C, class S> class read_context : public base_read_context<C>
 {
-  protected:
-    using value_type = decltype(std::declval<C>().submit());
-
-    C        child_;
-    const S& stream_;
-
-  public:
-    read_context_base(C&& c, const S& s) : child_(c), stream_(s) {}
-
-    auto submit() { return child_.submit(); }
-
-    void submit(read_token<value_type>&& t)
-    {
-        child_.submit(std::forward<read_token<value_type>>(t));
-    }
-
-    void cancel() { child_.cancel(); }
-};
-
-template<class C, class S>
-read_context_base(C&& c, const S& s)->read_context_base<C, S>;
-
-template<class C, class S> class read_context : public read_context_base<C, S>
-{
-    using typename read_context_base<C, S>::value_type;
-    using read_context_base<C, S>::child_;
-    using read_context_base<C, S>::stream_;
+    using typename base_read_context<C>::value_type;
+    using base_read_context<C>::child_;
+    S& stream_;
 
     read_done_token<value_type> done_token_;
 
     void done_handler(value_type v) { done_token_(stream_.func_(v)); }
 
   public:
-    using read_context_base<C, S>::read_context_base;
+    read_context(C&& c, S& s)
+        : base_read_context<C>{std::forward<C>(c)}, stream_(s)
+    {
+    }
 
     auto submit() { return stream_.func_(child_.submit()); }
 
@@ -71,7 +50,7 @@ template<class C, class S> class read_context : public read_context_base<C, S>
     }
 };
 
-template<class C, class S> read_context(C&& c, const S& s)->read_context<C, S>;
+template<class C, class S> read_context(C&& c, S& s)->read_context<C, S>;
 } // namespace detail
 
 template<WriteStreamable S, class F> class transform_write_fn
@@ -100,7 +79,7 @@ template<WriteStreamable S, class F> class transform_write_fn
     template<class V>
     auto readwrite(V&& v) const requires ReadWriteStreamable<S>
     {
-        return detail::read_context_base{stream_.readwrite(func_(v)), *this};
+        return detail::base_read_context{stream_.readwrite(func_(v))};
     }
 
     template<ranges::InputRange Rin, ranges::Range Rout>

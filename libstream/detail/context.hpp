@@ -57,6 +57,25 @@ template<class C> struct base_range_context
 
 template<class C> base_range_context(C&& c)->base_range_context<C>;
 
+template<class C> struct base_read_context
+{
+    C child_;
+
+  protected:
+    using value_type = decltype(std::declval<C>().submit());
+
+    auto submit() { return child_.submit(); }
+
+    void submit(read_token<value_type>&& t)
+    {
+        child_.submit(std::forward<read_token<value_type>>(t));
+    }
+
+    void cancel() { child_.cancel(); }
+};
+
+template<class C> base_read_context(C&& c)->base_read_context<C>;
+
 } // namespace detail
 } // namespace stream
 
