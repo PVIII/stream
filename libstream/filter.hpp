@@ -8,6 +8,7 @@
 #ifndef LIBSTREAM_FILTER_HPP_
 #define LIBSTREAM_FILTER_HPP_
 
+#include <liboutput_view/filter.hpp>
 #include <libstream/concepts/stream.hpp>
 #include <libstream/detail/context.hpp>
 
@@ -169,9 +170,15 @@ template<ReadStreamable S, class P> class filter_read_fn
     {
     }
 
-    auto read() const
+    auto read() const requires PureReadStreamable<S>
     {
         return detail::read_filter_context{stream_.read(), *this};
+    }
+
+    auto read(ranges::Range& r) const requires PureReadStreamable<S>
+    {
+        return detail::base_range_context{
+            stream_.read(output_view::filter(r, predicate_))};
     }
 };
 

@@ -134,5 +134,18 @@ SCENARIO("Filter reads.")
                 }
             }
         }
+
+        WHEN("A range is read.")
+        {
+            REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{1, 0, 2});
+            array a{0, 0};
+            auto  sender = s.read(a);
+            REQUIRE_THAT(a, Equals(array{1, 2}));
+
+            test_sync_submit(reader.range_sender_, sender);
+            test_async_range_submit(reader.range_sender_, sender, {2, 2});
+            test_async_range_submit(reader.range_sender_, sender, {2, 2},
+                                    dummy_error);
+        }
     }
 }
