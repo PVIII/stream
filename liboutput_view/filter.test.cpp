@@ -49,3 +49,16 @@ SCENARIO("Assignments.")
         }
     }
 }
+
+SCENARIO("Passing the adapter.")
+{
+    GIVEN("An adaptor.")
+    {
+        auto  f = []([[maybe_unused]] ranges::Range&& r) {};
+        array a{0};
+        auto  r = output_view::filter(
+            a, []([[maybe_unused]] auto v) { return true; });
+
+        THEN("The adaptor can be passed as a range.") { f(r); }
+    }
+}

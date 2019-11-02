@@ -117,6 +117,20 @@ requires View<V> class filter_view<V, Pred>::__iterator
     {
         if(!skip_) { ++current_; }
     }
+
+    friend constexpr bool
+    operator==(const __iterator& x,
+               const __iterator& y) requires EqualityComparable<iterator_t<V>>
+    {
+        return x.current_ == y.current_;
+    }
+
+    friend constexpr bool
+    operator!=(const __iterator& x,
+               const __iterator& y) requires EqualityComparable<iterator_t<V>>
+    {
+        return !(x == y);
+    }
 };
 
 template<Range V, IndirectUnaryPredicate<iterator_t<V>> Pred>
