@@ -13,6 +13,7 @@
 #include <stl2/detail/functional/invoke.hpp>
 #include <stl2/detail/fwd.hpp>
 #include <stl2/detail/iterator/concepts.hpp>
+#include <stl2/detail/meta.hpp>
 #include <stl2/detail/range/access.hpp>
 #include <stl2/detail/range/concepts.hpp>
 #include <stl2/detail/semiregular_box.hpp>
@@ -24,7 +25,7 @@ using namespace std::experimental::ranges;
 
 namespace output_view
 {
-template<Range V, IndirectUnaryPredicate<iterator_t<V>> Pred>
+template<Range V, class Pred>
 requires View<V> class filter_view : public view_interface<filter_view<V, Pred>>
 {
   private:
@@ -58,8 +59,7 @@ requires View<V> class filter_view : public view_interface<filter_view<V, Pred>>
     }
 };
 
-template<Range V, IndirectUnaryPredicate<iterator_t<V>> Pred>
-requires View<V> class filter_view<V, Pred>::__iterator
+template<View V, class Pred> class filter_view<V, Pred>::__iterator
 {
   private:
     iterator_t<V> current_{};
@@ -70,16 +70,15 @@ requires View<V> class filter_view<V, Pred>::__iterator
     class output_proxy
     {
         filter_view<V, Pred>::__iterator& parent_;
-        iterator_t<V>                     iterator_;
+        iterator_t<V>&                    iterator_;
 
       public:
-        output_proxy(filter_view<V, Pred>::__iterator& p, iterator_t<V> i)
+        output_proxy(filter_view<V, Pred>::__iterator& p, iterator_t<V>& i)
             : parent_(p), iterator_(i)
         {
         }
 
-        output_proxy const&
-        operator=(iter_value_t<iterator_t<V>> const& value) const
+        output_proxy const& operator=(auto const& value) const
         {
             if(invoke(parent_.parent_->pred_.get(), value))
             { *iterator_ = value; }
@@ -141,7 +140,7 @@ requires View<V> class filter_view<V, Pred>::__iterator
     }
 };
 
-template<Range V, IndirectUnaryPredicate<iterator_t<V>> Pred>
+template<Range V, class Pred>
 requires View<V> class filter_view<V, Pred>::__sentinel
 {
     sentinel_t<V> end_;
@@ -183,7 +182,7 @@ filter_view(R&&, Pred)->filter_view<all_view<R>, Pred>;
 
 struct __filter_fn
 {
-    template<Range R, IndirectUnaryPredicate<iterator_t<R>> Pred>
+    template<Range R, class Pred>
     requires ViewableRange<R> constexpr auto operator()(R&&  rng,
                                                         Pred pred) const
     {

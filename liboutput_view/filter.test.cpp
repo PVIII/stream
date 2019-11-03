@@ -32,9 +32,30 @@ SCENARIO("Assignments.")
             *begin(v) = 1;
             THEN("One is assigned.") { REQUIRE(a[0] == 1); }
         }
+
+        GIVEN("An additional adaptor filtering threes.")
+        {
+            auto v2 = output_view::filter(v, [](auto v) { return v != 3; });
+
+            WHEN("Three is assigned.")
+            {
+                *begin(v2) = 3;
+                THEN("Nothing is stored.") { REQUIRE(a[0] == 0); }
+            }
+            WHEN("Five is assigned.")
+            {
+                *begin(v2) = 5;
+                THEN("Nothing is stored.") { REQUIRE(a[0] == 0); }
+            }
+            WHEN("one is assigned.")
+            {
+                *begin(v2) = 1;
+                THEN("One is stored.") { REQUIRE(a[0] == 1); }
+            }
+        }
     }
 
-    GIVEN("An array with two elements.")
+    GIVEN("An array.")
     {
         array a{0, 0, 0};
         auto  v = output_view::filter(a, [](auto v) { return v != 5; });
