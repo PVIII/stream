@@ -110,12 +110,20 @@ requires View<V> class filter_view<V, Pred>::__iterator
     constexpr __iterator& operator++()
     {
         if(!skip_) { ++current_; }
+        else
+        {
+            skip_ = false;
+        }
         return *this;
     }
 
     constexpr void operator++(int)
     {
         if(!skip_) { ++current_; }
+        else
+        {
+            skip_ = false;
+        }
     }
 
     friend constexpr bool

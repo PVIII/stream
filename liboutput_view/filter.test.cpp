@@ -36,15 +36,15 @@ SCENARIO("Assignments.")
 
     GIVEN("An array with two elements.")
     {
-        array a{0, 0};
+        array a{0, 0, 0};
         auto  v = output_view::filter(a, [](auto v) { return v != 5; });
 
-        WHEN("[0, 5, 1,] is copied.")
+        WHEN("[0, 5, 1, 5, 0] is copied.")
         {
-            ranges::copy(array{0, 5, 1}, begin(v));
-            THEN("[0, 1] is stored.")
+            ranges::copy(array{0, 5, 1, 5, 0}, begin(v));
+            THEN("[0, 1, 0] is stored.")
             {
-                REQUIRE(ranges::equal(a, array{0, 1}));
+                REQUIRE(ranges::equal(a, array{0, 1, 0}));
             }
         }
     }
