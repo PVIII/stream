@@ -194,10 +194,11 @@ template<ReadStreamable S, class P> class filter_read_fn
         return detail::read_filter_context{stream_.read(), *this};
     }
 
-    auto read(ranges::Range& r) const requires PureReadStreamable<S>
+    template<ranges::Range R>
+    auto read(R&& r) const requires PureReadStreamable<S>
     {
         return detail::base_range_context{
-            stream_.read(output_view::filter(r, predicate_))};
+            stream_.read(output_view::filter(std::forward<R>(r), predicate_))};
     }
 
     template<class V>

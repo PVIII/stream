@@ -209,3 +209,74 @@ SCENARIO("Pipe operator")
     read_mock reader;
     reader | stream::filter_read([](int v) { return v != 0; });
 }
+
+SCENARIO("Double filter")
+{
+    GIVEN("A write stream.")
+    {
+        write_mock writer;
+
+        auto s = stream::filter_write(
+            stream::filter_write(writer, [](auto v) { return v >= 1; }),
+            [](auto v) { return v <= 4; });
+
+        WHEN("0 is written.") { s.write(0).submit(); }
+        WHEN("5 is written.") { s.write(5).submit(); }
+        WHEN("3 is written.")
+        {
+            REQUIRE_CALL(writer, write(3)).LR_RETURN(writer.sender_);
+            auto sender = s.write(3);
+            test_sync_submit(writer.sender_, sender);
+        }
+        WHEN("[0, 5, 3] is written.")
+        {
+            REQUIRE_CALL(writer, write_(vector{3}));
+            REQUIRE_CALL(writer.range_sender_, submit());
+            array a{0, 5, 3};
+            s.write(a).submit();
+        }
+    }
+    GIVEN("A read stream.")
+    {
+        read_mock reader;
+
+        auto s = stream::filter_read(
+            stream::filter_read(reader, [](auto v) { return v >= 1; }),
+            [](auto v) { return v <= 4; });
+
+        REQUIRE_CALL(reader, read()).LR_RETURN(reader.sender_);
+        auto sender = s.read();
+
+        WHEN("0 is read.")
+        {
+            int i = 0;
+            REQUIRE_CALL(reader.sender_, submit())
+                .LR_RETURN(i)
+                .LR_SIDE_EFFECT(++i);
+            REQUIRE_CALL(reader.sender_, submit()).LR_RETURN(i);
+            REQUIRE(sender.submit() == 1);
+        }
+        WHEN("5 is read.")
+        {
+            int i = 5;
+            REQUIRE_CALL(reader.sender_, submit())
+                .LR_RETURN(i)
+                .LR_SIDE_EFFECT(--i);
+            REQUIRE_CALL(reader.sender_, submit()).LR_RETURN(i);
+            REQUIRE(sender.submit() == 4);
+        }
+        WHEN("3 is read.")
+        {
+            REQUIRE_CALL(reader.sender_, submit()).LR_RETURN(3);
+            REQUIRE(sender.submit() == 3);
+        }
+        WHEN("[0, 5, 3] is read.")
+        {
+            REQUIRE_CALL(reader, read_(_)).SIDE_EFFECT(_1 = vector{0, 5, 3});
+            REQUIRE_CALL(reader.range_sender_, submit());
+            array a{0};
+            s.read(a).submit();
+            REQUIRE_THAT(a, Equals(array{3}));
+        }
+    }
+}
