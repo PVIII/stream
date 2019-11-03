@@ -49,16 +49,16 @@ SCENARIO("Actions and transformations.")
                 REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
                     .LR_SIDE_EFFECT(closure_token = _1;);
 
-                write_callback_mock  callback_mock;
+                done_callback_mock   callback_mock;
                 error_callback_mock  error_mock;
                 cancel_callback_mock cancel_mock;
                 sender.submit(
-                    write_token{error_mock, cancel_mock, callback_mock});
+                    base_token{error_mock, cancel_mock, callback_mock});
 
                 WHEN("The action callback is invoked.")
                 {
-                    write_token writer_token;
-                    REQUIRE_CALL(writer.sender_, submit(ANY(write_token)))
+                    base_token writer_token;
+                    REQUIRE_CALL(writer.sender_, submit(ANY(base_token)))
                         .LR_SIDE_EFFECT(writer_token = _1;);
                     closure_token.done();
 
@@ -102,24 +102,23 @@ SCENARIO("Actions and transformations.")
                 REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
                     .LR_SIDE_EFFECT(closure_token = _1;);
 
-                range_callback_mock  callback_mock;
+                done_callback_mock   callback_mock;
                 error_callback_mock  error_mock;
                 cancel_callback_mock cancel_mock;
                 sender.submit(
-                    completion_token{error_mock, cancel_mock, callback_mock});
+                    base_token{error_mock, cancel_mock, callback_mock});
 
                 WHEN("The action callback is invoked.")
                 {
-                    completion_token writer_token;
-                    REQUIRE_CALL(writer.range_sender_,
-                                 submit(ANY(completion_token)))
+                    base_token writer_token;
+                    REQUIRE_CALL(writer.range_sender_, submit(ANY(base_token)))
                         .LR_SIDE_EFFECT(writer_token = _1;);
                     closure_token.done();
 
                     WHEN("The writer callback is invoked.")
                     {
-                        REQUIRE_CALL(callback_mock, call(2));
-                        writer_token.done(2);
+                        REQUIRE_CALL(callback_mock, call());
+                        writer_token.done();
                     }
 
                     WHEN("The writer error callback is invoked.")
@@ -216,24 +215,23 @@ SCENARIO("Actions and transformations.")
                 REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
                     .LR_SIDE_EFFECT(closure_token = _1;);
 
-                range_callback_mock  callback_mock;
+                done_callback_mock   callback_mock;
                 error_callback_mock  error_mock;
                 cancel_callback_mock cancel_mock;
                 sender.submit(
-                    completion_token{error_mock, cancel_mock, callback_mock});
+                    base_token{error_mock, cancel_mock, callback_mock});
 
                 WHEN("The action callback is invoked.")
                 {
-                    completion_token reader_token;
-                    REQUIRE_CALL(reader.range_sender_,
-                                 submit(ANY(completion_token)))
+                    base_token reader_token;
+                    REQUIRE_CALL(reader.range_sender_, submit(ANY(base_token)))
                         .LR_SIDE_EFFECT(reader_token = _1;);
                     closure_token.done();
 
                     WHEN("The reader callback is invoked.")
                     {
-                        REQUIRE_CALL(callback_mock, call(2));
-                        reader_token.done(2);
+                        REQUIRE_CALL(callback_mock, call());
+                        reader_token.done();
                     }
 
                     WHEN("The writer error callback is invoked.")
@@ -274,16 +272,16 @@ SCENARIO("Cancelling operations.")
                 REQUIRE_CALL(closure.sender_, submit(ANY(token<>)))
                     .LR_SIDE_EFFECT(closure_token = _1;);
 
-                write_callback_mock  callback_mock;
+                done_callback_mock   callback_mock;
                 error_callback_mock  error_mock;
                 cancel_callback_mock cancel_mock;
                 sender.submit(
-                    write_token{error_mock, cancel_mock, callback_mock});
+                    base_token{error_mock, cancel_mock, callback_mock});
 
                 WHEN("The action callback is invoked")
                 {
-                    write_token writer_token;
-                    REQUIRE_CALL(writer.sender_, submit(ANY(write_token)))
+                    base_token writer_token;
+                    REQUIRE_CALL(writer.sender_, submit(ANY(base_token)))
                         .LR_SIDE_EFFECT(writer_token = _1;);
                     closure_token.done();
 

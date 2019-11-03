@@ -15,7 +15,7 @@
 
 namespace stream
 {
-struct write_callback_mock
+struct done_callback_mock
 {
     void operator()() { return call(); }
     MAKE_MOCK0(call, void());
@@ -25,12 +25,6 @@ struct read_callback_mock
 {
     void operator()(int v) { return call(v); }
     MAKE_MOCK1(call, void(int v));
-};
-
-struct range_callback_mock
-{
-    void operator()(std::size_t n) { return call(n); }
-    MAKE_MOCK1(call, void(std::size_t));
 };
 
 struct error_callback_mock

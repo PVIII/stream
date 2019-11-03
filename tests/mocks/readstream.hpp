@@ -32,7 +32,7 @@ struct read_mock
     struct range_sender
     {
         MAKE_MOCK0(submit, void());
-        MAKE_MOCK1(submit, void(completion_token&&));
+        MAKE_MOCK1(submit, void(base_token&&));
         MAKE_MOCK0(cancel, void());
     };
     sender       sender_;

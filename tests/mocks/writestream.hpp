@@ -28,13 +28,13 @@ struct write_mock
     struct sender
     {
         MAKE_MOCK0(submit, void());
-        MAKE_MOCK1(submit, void(write_token&&));
+        MAKE_MOCK1(submit, void(base_token&&));
         MAKE_MOCK0(cancel, void());
     };
     struct range_sender
     {
         MAKE_MOCK0(submit, void());
-        MAKE_MOCK1(submit, void(completion_token&&));
+        MAKE_MOCK1(submit, void(base_token&&));
         MAKE_MOCK0(cancel, void());
     };
     bool         check_range_type_ = false;

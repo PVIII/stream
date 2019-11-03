@@ -18,7 +18,7 @@ namespace detail
 {
 struct empty_write_context
 {
-    void submit(write_token&& t) { t.done(); }
+    void submit(base_token&& t) { t.done(); }
     void submit() noexcept {}
     void cancel() noexcept {}
 };
@@ -29,9 +29,9 @@ template<class C> struct base_write_context
 
     base_write_context(C&& c) : child_context_(c) {}
 
-    void submit(write_token&& t)
+    void submit(base_token&& t)
     {
-        child_context_.submit(std::forward<write_token>(t));
+        child_context_.submit(std::forward<base_token>(t));
     }
 
     void submit() { child_context_.submit(); }
@@ -45,10 +45,7 @@ template<class C> struct base_range_context
 {
     C child_;
 
-    void submit(completion_token&& t)
-    {
-        child_.submit(std::forward<completion_token>(t));
-    }
+    void submit(base_token&& t) { child_.submit(std::forward<base_token>(t)); }
 
     auto submit() { return child_.submit(); }
 

@@ -95,20 +95,20 @@ template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
     template<ranges::Range R>
     auto read(R&& r) const requires PureReadStreamable<S>
     {
-        return detail::make_context<completion_token>(
+        return detail::make_context<base_token>(
             pre_(), stream_.read(std::forward<R>(r)), *this);
     }
 
     template<ranges::InputRange R>
     auto write(R&& r) const requires PureWriteStreamable<S>
     {
-        return detail::make_context<completion_token>(
+        return detail::make_context<base_token>(
             pre_(), stream_.write(std::forward<R>(r)), *this);
     }
 
     template<class V> auto write(V&& v) const requires PureWriteStreamable<S>
     {
-        return detail::make_context<write_token>(
+        return detail::make_context<base_token>(
             pre_(), stream_.write(std::forward<V>(v)), *this);
     }
 
@@ -123,7 +123,7 @@ template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
     template<ranges::InputRange Rin, ranges::Range Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
-        return detail::make_context<completion_token>(
+        return detail::make_context<base_token>(
             pre_(),
             stream_.readwrite(std::forward<Rin>(rin), std::forward<Rout>(rout)),
             *this);

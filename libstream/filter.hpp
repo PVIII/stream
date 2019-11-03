@@ -28,12 +28,13 @@ template<class C> struct write_filter_context
         detail::base_write_context<C> base_context_;
         detail::empty_write_context   empty_context_;
     };
-    void submit(write_token&& t)
+
+    void submit(base_token&& t)
     {
         if(empty_) { empty_context_.submit(std::move(t)); }
         else
         {
-            base_context_.submit(std::forward<write_token>(t));
+            base_context_.submit(std::forward<base_token>(t));
         }
     }
     void submit() noexcept

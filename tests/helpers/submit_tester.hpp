@@ -58,14 +58,14 @@ void test_async_write_submit(auto& mock_sender, auto& sender,
 {
     WHEN("Asynchronous submit is called on the sender.")
     {
-        write_token t;
-        REQUIRE_CALL(mock_sender, submit(ANY(write_token)))
+        base_token t;
+        REQUIRE_CALL(mock_sender, submit(ANY(base_token)))
             .LR_SIDE_EFFECT(t = _1;);
-        write_callback_mock  callback_mock;
+        done_callback_mock   callback_mock;
         error_callback_mock  error_mock;
         cancel_callback_mock cancel_mock;
 
-        sender.submit(write_token{error_mock, cancel_mock, callback_mock});
+        sender.submit(base_token{error_mock, cancel_mock, callback_mock});
 
         WHEN("The callback is invoked.")
         {
@@ -84,26 +84,25 @@ void test_async_write_submit(auto& mock_sender, auto& sender,
 }
 
 void test_async_range_submit(auto& mock_sender, auto& sender,
-                             test_pair<std::size_t, std::size_t> size,
-                             stream::error_code                  e = 0)
+                             stream::error_code e = 0)
 {
     WHEN("Asynchronous submit is called.")
     {
-        completion_token t;
-        REQUIRE_CALL(mock_sender, submit(ANY(completion_token)))
+        base_token t;
+        REQUIRE_CALL(mock_sender, submit(ANY(base_token)))
             .LR_SIDE_EFFECT(t = _1);
-        range_callback_mock  callback_mock;
+        done_callback_mock   callback_mock;
         error_callback_mock  error_mock;
         cancel_callback_mock cancel_mock;
 
-        sender.submit(completion_token{error_mock, cancel_mock, callback_mock});
+        sender.submit(base_token{error_mock, cancel_mock, callback_mock});
 
         AND_WHEN("The callback is invoked.")
         {
             if(e == 0)
             {
-                REQUIRE_CALL(callback_mock, call(size.expected_));
-                t.done(size.produced_);
+                REQUIRE_CALL(callback_mock, call());
+                t.done();
             }
             else
             {

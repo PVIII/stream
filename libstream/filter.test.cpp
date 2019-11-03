@@ -33,13 +33,13 @@ SCENARIO("Filter writes.")
             WHEN("Synchronous submit is called.") { sender.submit(); }
             WHEN("Asynchronous submit is called.")
             {
-                write_callback_mock  callback_mock;
+                done_callback_mock   callback_mock;
                 error_callback_mock  error_mock;
                 cancel_callback_mock cancel_mock;
 
                 REQUIRE_CALL(callback_mock, call());
                 sender.submit(
-                    write_token{error_mock, cancel_mock, callback_mock});
+                    base_token{error_mock, cancel_mock, callback_mock});
             }
         }
         WHEN("One is written.")
@@ -59,9 +59,8 @@ SCENARIO("Filter writes.")
             auto  sender = s.write(a);
 
             test_sync_submit(writer.range_sender_, sender);
-            test_async_range_submit(writer.range_sender_, sender, {2, 2});
-            test_async_range_submit(writer.range_sender_, sender, {2, 2},
-                                    dummy_error);
+            test_async_range_submit(writer.range_sender_, sender);
+            test_async_range_submit(writer.range_sender_, sender, dummy_error);
         }
     }
 
@@ -81,8 +80,8 @@ SCENARIO("Filter writes.")
             REQUIRE_THAT(a_read, Equals(array{0, 1}));
 
             test_sync_submit(readwriter.range_sender_, sender);
-            test_async_range_submit(readwriter.range_sender_, sender, {3, 3});
-            test_async_range_submit(readwriter.range_sender_, sender, {3, 3},
+            test_async_range_submit(readwriter.range_sender_, sender);
+            test_async_range_submit(readwriter.range_sender_, sender,
                                     dummy_error);
         }
     }
@@ -144,9 +143,8 @@ SCENARIO("Filter reads.")
             REQUIRE_THAT(a, Equals(array{1, 2}));
 
             test_sync_submit(reader.range_sender_, sender);
-            test_async_range_submit(reader.range_sender_, sender, {2, 2});
-            test_async_range_submit(reader.range_sender_, sender, {2, 2},
-                                    dummy_error);
+            test_async_range_submit(reader.range_sender_, sender);
+            test_async_range_submit(reader.range_sender_, sender, dummy_error);
         }
     }
 
@@ -165,8 +163,8 @@ SCENARIO("Filter reads.")
             REQUIRE_THAT(a_read, Equals(array{3, 4}));
 
             test_sync_submit(readwriter.range_sender_, sender);
-            test_async_range_submit(readwriter.range_sender_, sender, {2, 2});
-            test_async_range_submit(readwriter.range_sender_, sender, {2, 2},
+            test_async_range_submit(readwriter.range_sender_, sender);
+            test_async_range_submit(readwriter.range_sender_, sender,
                                     dummy_error);
         }
     }
@@ -183,15 +181,15 @@ SCENARIO("Cancelling operations.")
         {
             REQUIRE_CALL(writer, write(1)).LR_RETURN(writer.sender_);
 
-            write_callback_mock  callback_mock;
+            done_callback_mock   callback_mock;
             error_callback_mock  error_mock;
             cancel_callback_mock cancel_mock;
             auto                 sender = s.write(1);
 
-            write_token writer_token;
-            REQUIRE_CALL(writer.sender_, submit(ANY(write_token)))
+            base_token writer_token;
+            REQUIRE_CALL(writer.sender_, submit(ANY(base_token)))
                 .LR_SIDE_EFFECT(writer_token = _1);
-            sender.submit(write_token{error_mock, cancel_mock, callback_mock});
+            sender.submit(base_token{error_mock, cancel_mock, callback_mock});
 
             WHEN("The operation is cancelled.")
             {
