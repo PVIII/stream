@@ -148,4 +148,25 @@ SCENARIO("Filter reads.")
                                     dummy_error);
         }
     }
+
+    GIVEN("A read-write stream that filters 0.")
+    {
+        read_write_mock readwriter;
+        auto s = stream::filter_read(readwriter, [](auto v) { return v != 0; });
+
+        WHEN("A range is read.")
+        {
+            REQUIRE_CALL(readwriter, readwrite_(vector{0, 1, 2, 0}, _))
+                .SIDE_EFFECT(_2 = vector{0, 3, 0, 4});
+            array a_read{0, 0};
+            array a_write{0, 1, 2, 0};
+            auto  sender = s.readwrite(a_write, a_read);
+            REQUIRE_THAT(a_read, Equals(array{3, 4}));
+
+            test_sync_submit(readwriter.range_sender_, sender);
+            test_async_range_submit(readwriter.range_sender_, sender, {2, 2});
+            test_async_range_submit(readwriter.range_sender_, sender, {2, 2},
+                                    dummy_error);
+        }
+    }
 }

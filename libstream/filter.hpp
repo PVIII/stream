@@ -180,6 +180,20 @@ template<ReadStreamable S, class P> class filter_read_fn
         return detail::base_range_context{
             stream_.read(output_view::filter(r, predicate_))};
     }
+
+    template<class V>
+    auto readwrite(V&& v) const requires ReadWriteStreamable<S>
+    {
+        return detail::read_filter_context{
+            stream_.readwrite(std::forward<V>(v)), *this};
+    }
+
+    template<ranges::InputRange Rin, ranges::Range Rout>
+    auto readwrite(Rin&& rin, Rout& rout) const requires ReadWriteStreamable<S>
+    {
+        return detail::base_range_context{stream_.readwrite(
+            std::forward<Rin>(rin), output_view::filter(rout, predicate_))};
+    }
 };
 
 template<ReadStreamable S, class P>
