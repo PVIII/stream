@@ -292,7 +292,7 @@ SCENARIO("Const transform adaptor.")
     }
 }
 
-SCENARIO("R-value writer and callback")
+SCENARIO("R-value reader and callback")
 {
     [[maybe_unused]] auto s =
         stream::transform_read(move_only_reader{}, [](int v) { return v; });
