@@ -9,6 +9,7 @@
 #define LIBSTREAM_FILTER_HPP_
 
 #include <liboutput_view/filter.hpp>
+#include <libstream/concepts/pipe.hpp>
 #include <libstream/concepts/stream.hpp>
 #include <libstream/detail/context.hpp>
 
@@ -159,6 +160,24 @@ WriteStreamable filter_write(S&& stream, P&& p)
     return filter_write_fn{std::forward<S>(stream), std::forward<P>(p)};
 }
 
+template<class F> class filter_write_pipe
+{
+    F f_;
+
+  public:
+    filter_write_pipe(F&& f) : f_(f) {}
+
+    template<WriteStreamable S> WriteStreamable pipe(S&& s) const
+    {
+        return filter_write_fn<S, F>{std::forward<S>(s), F(f_)};
+    }
+};
+
+template<class F> Pipeable filter_write(F&& f)
+{
+    return filter_write_pipe{std::forward<F>(f)};
+}
+
 template<ReadStreamable S, class P> class filter_read_fn
 {
     S stream_;
@@ -205,6 +224,24 @@ template<ReadStreamable S, class P>
 ReadStreamable filter_read(S&& stream, P&& p)
 {
     return filter_read_fn{std::forward<S>(stream), std::forward<P>(p)};
+}
+
+template<class F> class filter_read_pipe
+{
+    F f_;
+
+  public:
+    filter_read_pipe(F&& f) : f_(f) {}
+
+    template<ReadStreamable S> ReadStreamable pipe(S&& s) const
+    {
+        return filter_read_fn<S, F>{std::forward<S>(s), F(f_)};
+    }
+};
+
+template<class F> Pipeable filter_read(F&& f)
+{
+    return filter_read_pipe{std::forward<F>(f)};
 }
 } // namespace stream
 

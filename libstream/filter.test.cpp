@@ -7,6 +7,7 @@
 
 #include <libstream/filter.hpp>
 
+#include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/helpers/submit_tester.hpp>
 #include <tests/mocks/readstream.hpp>
@@ -192,4 +193,19 @@ SCENARIO("Const filter adaptor")
                 stream::filter_read(reader, [](auto v) { return v != 0; });
         }
     }
+}
+
+SCENARIO("R-value reader and callback")
+{
+    [[maybe_unused]] auto s =
+        stream::filter_read(move_only_reader{}, [](int v) { return v != 0; });
+}
+
+SCENARIO("Pipe operator")
+{
+    write_mock writer;
+    writer | stream::filter_write([](int v) { return v != 0; });
+
+    read_mock reader;
+    reader | stream::filter_read([](int v) { return v != 0; });
 }
