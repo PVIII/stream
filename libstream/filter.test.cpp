@@ -106,7 +106,7 @@ SCENARIO("Filter reads.")
                     .LR_RETURN(i)
                     .LR_SIDE_EFFECT(++i);
                 REQUIRE_CALL(reader.sender_, submit()).LR_RETURN(i);
-                sender.submit();
+                REQUIRE(sender.submit() == 1);
             }
             WHEN("Asynchronous submit is called.")
             {
