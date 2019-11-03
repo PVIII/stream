@@ -6,6 +6,7 @@
  */
 
 #include <libstream/action.hpp>
+#include <libstream/filter.hpp>
 #include <libstream/transform.hpp>
 
 #include <tests/helpers/range_matcher.hpp>
@@ -321,7 +322,7 @@ SCENARIO("Pipe interoperability.")
     write_mock  writer;
 
     auto s = writer | stream::transform_write([](auto v) { return v + 1; }) |
-             action(closure);
+             action(closure) | filter_write([](auto v) { return v != 0; });
 
     WHEN("Single write is called")
     {
