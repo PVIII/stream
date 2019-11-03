@@ -170,3 +170,26 @@ SCENARIO("Filter reads.")
         }
     }
 }
+
+SCENARIO("Const filter adaptor")
+{
+    GIVEN("Writer")
+    {
+        write_mock writer;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s =
+                stream::filter_write(writer, [](auto v) { return v != 0; });
+        }
+    }
+
+    GIVEN("Reader")
+    {
+        read_mock reader;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s =
+                stream::filter_read(reader, [](auto v) { return v != 0; });
+        }
+    }
+}
