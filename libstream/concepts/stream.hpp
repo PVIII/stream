@@ -12,9 +12,9 @@
 
 namespace stream
 {
-template<class S> concept bool PureWriteStreamable = requires(S s)
+template<class S> concept bool PureWriteStreamable = requires
 {
-    {std::remove_reference_t<S>::write};
+    &std::remove_reference_t<S>::write;
 };
 
 template<class S> concept bool PureReadStreamable = requires(S s)
