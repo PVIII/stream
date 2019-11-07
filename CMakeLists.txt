@@ -14,6 +14,7 @@ add_library(stream INTERFACE)
 target_sources(stream INTERFACE
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/action.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/callback.hpp
+            ${CMAKE_CURRENT_SOURCE_DIR}/libstream/demultiplex.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/filter.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/transform.hpp
             ${CMAKE_CURRENT_SOURCE_DIR}/libstream/concepts/executor.hpp

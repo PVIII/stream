@@ -19,4 +19,15 @@ struct move_only_reader
     sender read() const { return sender{}; }
 };
 
+struct move_only_writer
+{
+    move_only_writer(move_only_writer&&)      = default;
+    move_only_writer(const move_only_writer&) = delete;
+    struct sender
+    {
+        void submit() {}
+    };
+    sender write([[maybe_unused]] int v) const { return sender{}; }
+};
+
 #endif // TESTS_HELPERS_CONSTRAINED_TYPES_HPP_

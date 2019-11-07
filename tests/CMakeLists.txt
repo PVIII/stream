@@ -8,6 +8,13 @@ target_compile_options(action_test PRIVATE -fsanitize=address -fsanitize=leak -f
 target_link_options(action_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 add_test(NAME action_test COMMAND action_test)
 
+add_executable(demultiplex_test ../libstream/demultiplex.test.cpp)
+target_link_libraries(demultiplex_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
+target_compile_options(demultiplex_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
+target_compile_options(demultiplex_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+target_link_options(demultiplex_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+add_test(NAME demultiplex_test COMMAND demultiplex_test)
+
 add_executable(filter_test ../libstream/filter.test.cpp)
 target_link_libraries(filter_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
 target_compile_options(filter_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
