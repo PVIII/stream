@@ -14,8 +14,6 @@
 
 #include <experimental/ranges/range>
 
-namespace ranges = std::experimental::ranges;
-
 namespace stream
 {
 namespace detail
@@ -92,14 +90,14 @@ template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
         return detail::make_context<child_token>(pre_(), stream_.read(), *this);
     }
 
-    template<ranges::Range R>
+    template<std::experimental::ranges::Range R>
     auto read(R&& r) const requires PureReadStreamable<S>
     {
         return detail::make_context<base_token>(
             pre_(), stream_.read(std::forward<R>(r)), *this);
     }
 
-    template<ranges::InputRange R>
+    template<std::experimental::ranges::InputRange R>
     auto write(R&& r) const requires PureWriteStreamable<S>
     {
         return detail::make_context<base_token>(
@@ -120,7 +118,8 @@ template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
             pre_(), stream_.readwrite(std::forward<V>(v)), *this);
     }
 
-    template<ranges::InputRange Rin, ranges::Range Rout>
+    template<std::experimental::ranges::InputRange Rin,
+             std::experimental::ranges::Range      Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
         return detail::make_context<base_token>(
@@ -130,12 +129,12 @@ template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
     }
 };
 
-template<Streamable S, ranges::RegularInvocable Pre>
+template<Streamable S, std::experimental::ranges::RegularInvocable Pre>
 action_fn(S&, Pre &&)->action_fn<S&, Pre>;
-template<Streamable S, ranges::RegularInvocable Pre>
+template<Streamable S, std::experimental::ranges::RegularInvocable Pre>
 action_fn(S&&, Pre &&)->action_fn<S, Pre>;
 
-template<ranges::RegularInvocable Pre> class action_pipe
+template<std::experimental::ranges::RegularInvocable Pre> class action_pipe
 {
     Pre pre_;
 
@@ -148,12 +147,13 @@ template<ranges::RegularInvocable Pre> class action_pipe
     }
 };
 
-template<ranges::RegularInvocable Pre> Pipeable action(Pre&& pre)
+template<std::experimental::ranges::RegularInvocable Pre>
+Pipeable action(Pre&& pre)
 {
     return action_pipe<Pre>{std::forward<Pre>(pre)};
 }
 
-template<Streamable S, ranges::RegularInvocable Pre>
+template<Streamable S, std::experimental::ranges::RegularInvocable Pre>
 Streamable action(S&& stream, Pre&& pre)
 {
     return action_fn{std::forward<S>(stream), std::forward<Pre>(pre)};

@@ -21,9 +21,7 @@
 #include <stl2/view/all.hpp>
 #include <stl2/view/view_interface.hpp>
 
-using namespace std::experimental::ranges;
-
-namespace output_view
+namespace std::experimental::ranges::view::output
 {
 template<Range V, CopyConstructible F>
 requires OutputRange<V, iter_reference_t<iterator_t<V>>>&& View<V>&&
@@ -362,8 +360,12 @@ struct __transform_fn
         return detail::view_closure{*this, std::move(fun)};
     }
 };
+} // namespace std::experimental::ranges::view::output
 
-inline constexpr __transform_fn transform{};
+namespace output_view
+{
+inline constexpr std::experimental::ranges::view::output::__transform_fn
+    transform{};
 } // namespace output_view
 
 #endif // LIBOUTPUT_VIEW_TRANSFORM_HPP_

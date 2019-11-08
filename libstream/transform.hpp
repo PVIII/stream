@@ -15,8 +15,6 @@
 
 #include <experimental/ranges/range>
 
-namespace ranges = std::experimental::ranges;
-
 namespace stream
 {
 namespace detail
@@ -70,10 +68,11 @@ template<WriteStreamable S, class F> class transform_write_fn
             stream_.write(func_(std::forward<V>(v)))};
     }
 
-    template<ranges::InputRange R> auto write(R&& r) const
+    template<std::experimental::ranges::InputRange R> auto write(R&& r) const
     {
         return detail::base_range_context{
-            stream_.write(ranges::view::transform(std::forward<R>(r), func_))};
+            stream_.write(std::experimental::ranges::view::transform(
+                std::forward<R>(r), func_))};
     }
 
     template<class V>
@@ -82,12 +81,14 @@ template<WriteStreamable S, class F> class transform_write_fn
         return detail::base_read_context{stream_.readwrite(func_(v))};
     }
 
-    template<ranges::InputRange Rin, ranges::Range Rout>
+    template<std::experimental::ranges::InputRange Rin,
+             std::experimental::ranges::Range      Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
-        return detail::base_range_context{stream_.readwrite(
-            ranges::view::transform(std::forward<Rin>(rin), func_),
-            std::forward<Rout>(rout))};
+        return detail::base_range_context{
+            stream_.readwrite(std::experimental::ranges::view::transform(
+                                  std::forward<Rin>(rin), func_),
+                              std::forward<Rout>(rout))};
     }
 };
 
@@ -108,7 +109,8 @@ template<ReadStreamable S, class F> class transform_read_fn
         return detail::read_context{stream_.read(), *this};
     }
 
-    auto read(ranges::Range&& r) const requires PureReadStreamable<S>
+    auto read(std::experimental::ranges::Range&& r) const
+        requires PureReadStreamable<S>
     {
         return detail::base_range_context{
             stream_.read(output_view::transform(r, func_))};
@@ -121,7 +123,8 @@ template<ReadStreamable S, class F> class transform_read_fn
                                     *this};
     }
 
-    template<ranges::InputRange Rin, ranges::Range Rout>
+    template<std::experimental::ranges::InputRange Rin,
+             std::experimental::ranges::Range      Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
         return detail::base_range_context{stream_.readwrite(

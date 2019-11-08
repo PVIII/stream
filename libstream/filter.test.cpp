@@ -19,6 +19,7 @@
 
 using namespace stream;
 using namespace std;
+using trompeloeil::_;
 
 SCENARIO("Filter writes.")
 {

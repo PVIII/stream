@@ -21,9 +21,7 @@
 #include <stl2/view/all.hpp>
 #include <stl2/view/view_interface.hpp>
 
-using namespace std::experimental::ranges;
-
-namespace output_view
+namespace std::experimental::ranges::view::output
 {
 template<Range V, class Pred>
 requires View<V> class filter_view : public view_interface<filter_view<V, Pred>>
@@ -193,9 +191,13 @@ struct __filter_fn
     {
         return detail::view_closure{*this, std::move(pred)};
     }
-}; // namespace output_view
+};
 
-inline constexpr __filter_fn filter{};
+} // namespace std::experimental::ranges::view::output
+
+namespace output_view
+{
+inline constexpr std::experimental::ranges::view::output::__filter_fn filter{};
 } // namespace output_view
 
 #endif /* LIBOUTPUT_VIEW_FILTER_HPP_ */

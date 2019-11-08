@@ -10,8 +10,6 @@
 
 #include <experimental/ranges/concepts>
 
-namespace ranges = std::experimental::ranges;
-
 namespace stream
 {
 template<class F, class Ret, class... Args>

@@ -15,8 +15,6 @@
 
 #include <experimental/ranges/range>
 
-namespace ranges = std::experimental::ranges;
-
 namespace stream
 {
 namespace detail
@@ -135,18 +133,21 @@ template<WriteStreamable S, class P> class filter_write_fn
         }
     }
 
-    template<ranges::InputRange R> auto write(R&& r) const
+    template<std::experimental::ranges::InputRange R> auto write(R&& r) const
     {
-        return detail::base_range_context{stream_.write(
-            ranges::view::filter(std::forward<R>(r), predicate_))};
+        return detail::base_range_context{
+            stream_.write(std::experimental::ranges::view::filter(
+                std::forward<R>(r), predicate_))};
     }
 
-    template<ranges::InputRange Rin, ranges::Range Rout>
+    template<std::experimental::ranges::InputRange Rin,
+             std::experimental::ranges::Range      Rout>
     auto readwrite(Rin&& rin, Rout&& rout) const requires ReadWriteStreamable<S>
     {
-        return detail::base_range_context{stream_.readwrite(
-            ranges::view::filter(std::forward<Rin>(rin), predicate_),
-            std::forward<Rout>(rout))};
+        return detail::base_range_context{
+            stream_.readwrite(std::experimental::ranges::view::filter(
+                                  std::forward<Rin>(rin), predicate_),
+                              std::forward<Rout>(rout))};
     }
 };
 
@@ -195,7 +196,7 @@ template<ReadStreamable S, class P> class filter_read_fn
         return detail::read_filter_context{stream_.read(), *this};
     }
 
-    template<ranges::Range R>
+    template<std::experimental::ranges::Range R>
     auto read(R&& r) const requires PureReadStreamable<S>
     {
         return detail::base_range_context{
@@ -209,7 +210,8 @@ template<ReadStreamable S, class P> class filter_read_fn
             stream_.readwrite(std::forward<V>(v)), *this};
     }
 
-    template<ranges::InputRange Rin, ranges::Range Rout>
+    template<std::experimental::ranges::InputRange Rin,
+             std::experimental::ranges::Range      Rout>
     auto readwrite(Rin&& rin, Rout& rout) const requires ReadWriteStreamable<S>
     {
         return detail::base_range_context{stream_.readwrite(

@@ -13,8 +13,6 @@
 #include <catch2/catch.hpp>
 #include <catch2/trompeloeil.hpp>
 
-using trompeloeil::_;
-
 namespace stream
 {
 constexpr error_code dummy_error = 1;
@@ -56,6 +54,7 @@ void test_sync_read_submit(auto& mock_sender, auto& sender, test_pair<P, E> p)
 void test_async_write_submit(auto& mock_sender, auto& sender,
                              stream::error_code e = 0)
 {
+    using trompeloeil::_;
     WHEN("Asynchronous submit is called on the sender.")
     {
         base_token t;
@@ -86,6 +85,7 @@ void test_async_write_submit(auto& mock_sender, auto& sender,
 void test_async_range_submit(auto& mock_sender, auto& sender,
                              stream::error_code e = 0)
 {
+    using trompeloeil::_;
     WHEN("Asynchronous submit is called.")
     {
         base_token t;
@@ -117,6 +117,7 @@ template<class P, class E>
 void test_async_read_submit(auto& mock_sender, auto& sender, test_pair<P, E> p,
                             stream::error_code e = 0)
 {
+    using trompeloeil::_;
     WHEN("Asynchronous submit is called on the sender.")
     {
         read_token<E> t;
