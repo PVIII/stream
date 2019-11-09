@@ -5,7 +5,7 @@
  * @link      github.com/PVIII/stream
  */
 
-#include "action.hpp"
+#include <libstream/action.hpp>
 
 #include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
