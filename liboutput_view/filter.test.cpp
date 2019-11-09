@@ -1,8 +1,8 @@
-/*
- * filter.test.cpp
- *
- *  Created on: Oct 20, 2019
- *      Author: patrick
+/*!
+ * @author    Patrick Wang-Freninger <github@freninger.at>
+ * @copyright MIT
+ * @date      2019
+ * @link      github.com/PVIII/stream
  */
 
 #include <liboutput_view/filter.hpp>
