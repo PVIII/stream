@@ -20,7 +20,7 @@ using std::array;
 
 SCENARIO("Assignments.")
 {
-    GIVEN("An adaptor that writes until 2.")
+    GIVEN("An adaptor that writes while not 2.")
     {
         array a{0, 0, 0};
         auto  v = output_view::take_while(a, [](auto v) { return v != 2; });
