@@ -186,4 +186,4 @@ inline constexpr std::experimental::ranges::ext::output::__take_while_fn
     take_while{};
 } // namespace output_view
 
-#endif /* LIBOUTPUT_VIEW_FILTER_HPP_ */
+#endif /* LIBOUTPUT_VIEW_TAKE_WHILE_HPP_ */
