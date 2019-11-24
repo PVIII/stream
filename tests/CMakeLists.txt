@@ -52,6 +52,14 @@ target_compile_options(filter_view_test PRIVATE -fsanitize=address -fsanitize=le
 target_link_options(filter_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 add_test(NAME filter_view_test COMMAND filter_view_test)
 
+add_executable(take_while_view_test
+               ../liboutput_view/take_while.test.cpp)
+target_link_libraries(take_while_view_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
+target_compile_options(take_while_view_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
+target_compile_options(take_while_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+target_link_options(take_while_view_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+add_test(NAME take_while_view_test COMMAND take_while_view_test)
+
 add_executable(transform_view_test
                ../liboutput_view/transform.test.cpp)
 target_link_libraries(transform_view_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
