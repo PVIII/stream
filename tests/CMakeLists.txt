@@ -29,6 +29,14 @@ target_compile_options(pipe_test PRIVATE -fsanitize=address -fsanitize=leak -fsa
 target_link_options(pipe_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 add_test(NAME pipe_test COMMAND pipe_test)
 
+add_executable(take_until_test
+               ../libstream/take_until.test.cpp)
+target_link_libraries(take_until_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)
+target_compile_options(take_until_test PRIVATE -pedantic-errors -Werror -Wall -Wextra)
+target_compile_options(take_until_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+target_link_options(take_until_test PRIVATE -fsanitize=address -fsanitize=leak -fsanitize=undefined)
+add_test(NAME take_until_test COMMAND take_until_test)
+
 add_executable(transform_test
                ../libstream/transform.test.cpp)
 target_link_libraries(transform_test PRIVATE stream CONAN_PKG::prebuilt-catch2 CONAN_PKG::trompeloeil)

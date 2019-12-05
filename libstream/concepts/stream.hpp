@@ -19,7 +19,7 @@ template<class S> concept bool PureWriteStreamable = requires
 
 template<class S> concept bool PureReadStreamable = requires(S s)
 {
-    {s.read().submit()};
+    &std::remove_reference_t<S>::read;
 };
 
 template<class S> concept bool ReadWriteStreamable = requires(S s)

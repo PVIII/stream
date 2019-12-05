@@ -43,7 +43,7 @@ struct read_mock
     {
         std::vector<int> v;
         read_(v);
-        ranges::copy(v, ranges::begin(r));
+        ranges::ext::copy(v, r);
         return range_sender_;
     }
     MAKE_MOCK1(read_, void(std::vector<int>& r));
