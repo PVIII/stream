@@ -9,6 +9,7 @@
 #define LIBSTREAM_TAKE_UNTIL_HPP_
 
 #include <liboutput_view/take_until.hpp>
+#include <libstream/concepts/pipe.hpp>
 #include <libstream/concepts/stream.hpp>
 #include <libstream/detail/context.hpp>
 
@@ -50,6 +51,24 @@ template<ReadStreamable S, class P>
 ReadStreamable take_until_read(S&& stream, P&& p)
 {
     return take_until_read_fn{std::forward<S>(stream), std::forward<P>(p)};
+}
+
+template<class P> class take_until_read_pipe
+{
+    P p_;
+
+  public:
+    take_until_read_pipe(P&& p) : p_(p) {}
+
+    template<ReadStreamable S> ReadStreamable pipe(S&& s) const
+    {
+        return take_until_read_fn<S, P>{std::forward<S>(s), P(p_)};
+    }
+};
+
+template<class P> Pipeable take_until_read(P&& p)
+{
+    return take_until_read_pipe{std::forward<P>(p)};
 }
 } // namespace stream
 

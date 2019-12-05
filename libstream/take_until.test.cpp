@@ -7,6 +7,7 @@
 
 #include <libstream/take_until.hpp>
 
+#include <tests/helpers/constrained_types.hpp>
 #include <tests/helpers/range_matcher.hpp>
 #include <tests/helpers/submit_tester.hpp>
 #include <tests/mocks/readstream.hpp>
@@ -96,4 +97,29 @@ SCENARIO("Cancelling operations.")
             }
         }
     }
+}
+
+SCENARIO("Const filter adaptor")
+{
+    GIVEN("Reader")
+    {
+        read_mock reader;
+        THEN("A constant adaptor can refer to it.")
+        {
+            [[maybe_unused]] const auto s =
+                stream::take_until_read(reader, [](auto v) { return v != 0; });
+        }
+    }
+}
+
+SCENARIO("R-value reader and callback")
+{
+    [[maybe_unused]] auto s = stream::take_until_read(
+        move_only_reader{}, [](int v) { return v != 0; });
+}
+
+SCENARIO("Pipe operator")
+{
+    read_mock reader;
+    reader | stream::take_until_read([](int v) { return v != 0; });
 }
