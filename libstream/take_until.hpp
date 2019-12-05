@@ -31,6 +31,14 @@ template<ReadStreamable S, class P> class take_until_read_fn
         return detail::base_range_context{stream_.read(
             output_view::take_until(std::forward<R>(r), predicate_))};
     }
+
+    template<std::experimental::ranges::InputRange Rin,
+             std::experimental::ranges::Range      Rout>
+    auto readwrite(Rin&& rin, Rout& rout) const requires ReadWriteStreamable<S>
+    {
+        return detail::base_range_context{stream_.readwrite(
+            std::forward<Rin>(rin), output_view::take_until(rout, predicate_))};
+    }
 };
 
 template<ReadStreamable S, class P>
