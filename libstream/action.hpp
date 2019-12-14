@@ -79,7 +79,7 @@ template<Streamable S, class Pre> requires Executable<Pre, void> class action_fn
     Pre pre_;
 
   public:
-    action_fn(S&& stream, Pre&& pre)
+    constexpr action_fn(S&& stream, Pre&& pre)
         : stream_(std::forward<S>(stream)), pre_(pre)
     {
     }
@@ -139,22 +139,22 @@ template<std::experimental::ranges::RegularInvocable Pre> class action_pipe
     Pre pre_;
 
   public:
-    action_pipe(Pre&& pre) : pre_(pre) {}
+    constexpr action_pipe(Pre&& pre) : pre_(pre) {}
 
-    template<Streamable S> Streamable pipe(S&& s) const
+    template<Streamable S> constexpr Streamable pipe(S&& s) const
     {
         return action_fn{std::forward<S>(s), pre_};
     }
 };
 
 template<std::experimental::ranges::RegularInvocable Pre>
-Pipeable action(Pre&& pre)
+constexpr Pipeable action(Pre&& pre)
 {
     return action_pipe<Pre>{std::forward<Pre>(pre)};
 }
 
 template<Streamable S, std::experimental::ranges::RegularInvocable Pre>
-Streamable action(S&& stream, Pre&& pre)
+constexpr Streamable action(S&& stream, Pre&& pre)
 {
     return action_fn{std::forward<S>(stream), std::forward<Pre>(pre)};
 }

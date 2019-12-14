@@ -482,32 +482,46 @@ SCENARIO("Cancelling operations.")
     }
 }
 
-SCENARIO("Const action adaptor.")
+SCENARIO("const and contexpr.")
 {
     action_mock closure;
+    static action_mock static_closure;
+    const action_mock const_closure;
     GIVEN("Writer")
     {
-        write_mock writer;
+        static write_mock writer;
+        static write_mock static_writer;
+        const write_mock const_writer;
         THEN("A constant adaptor can refer to it.")
         {
-            [[maybe_unused]] const auto s = action(writer, closure);
+            [[maybe_unused]] const auto s1 = action(writer, closure);
+            [[maybe_unused]] const auto s2 = action(const_writer, const_closure);
+            [[maybe_unused]] constexpr auto s3 = action(static_writer, static_closure);
         }
         THEN("A constant piped adaptor can refer to it.")
         {
-            [[maybe_unused]] const auto s = writer | action(closure);
+            [[maybe_unused]] const auto s1 = writer | action(closure);
+            [[maybe_unused]] const auto s2 = const_writer | action(const_closure);
+            [[maybe_unused]] constexpr auto s3 = static_writer | action(static_closure);
         }
     }
 
     GIVEN("Reader")
     {
-        read_mock reader;
+    	read_mock reader;
+        static read_mock static_reader;
+        const read_mock const_reader;
         THEN("A constant adaptor can refer to it.")
         {
-            [[maybe_unused]] const auto s = action(reader, closure);
+            [[maybe_unused]] const auto s1 = action(reader, closure);
+            [[maybe_unused]] const auto s2 = action(const_reader, const_closure);
+            [[maybe_unused]] constexpr auto s3 = action(static_reader, static_closure);
         }
         THEN("A constant piped adaptor can refer to it.")
         {
-            [[maybe_unused]] const auto s = reader | action(closure);
+            [[maybe_unused]] const auto s1 = reader | action(closure);
+            [[maybe_unused]] const auto s2 = const_reader | action(const_closure);
+            [[maybe_unused]] constexpr auto s3 = static_reader | action(static_closure);
         }
     }
 }

@@ -25,7 +25,7 @@ template<Streamable S, Pipeable P> concept bool PipeableTo = requires(S s, P p)
 };
 
 template<Streamable S, Pipeable P>
-Streamable operator|(S&& stream, const P& pipe) requires PipeableTo<S, P>
+constexpr Streamable operator|(S&& stream, const P& pipe) requires PipeableTo<S, P>
 {
     return pipe.pipe(std::forward<S>(stream));
 }
